@@ -1,0 +1,67 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, Types } from 'mongoose';
+
+@Schema({ _id: false, timestamps: false })
+export class ProductVariant {
+  @Prop({ required: true })
+  variantName!: string;
+
+  @Prop({ required: true, min: 0 })
+  priceImport!: number;
+
+  @Prop({ required: true, min: 0 })
+  priceSell!: number;
+
+  @Prop({ required: true, min: 0 })
+  stockQty!: number;
+
+  @Prop({ default: 0 })
+  stockAlert!: number;
+
+  @Prop({ required: true })
+  weight!: number;
+}
+
+export type ProductDocument = Product & Document;
+
+@Schema({ timestamps: true, collection: 'products' })
+export class Product {
+  @Prop({ required: true, index: true })
+  name!: string;
+
+  @Prop({ required: true, unique: true, index: true })
+  sku!: string;
+
+  @Prop({ required: true, unique: true })
+  slug!: string;
+
+  @Prop({ type: Types.ObjectId, ref: 'Category', required: true })
+  category!: Types.ObjectId;
+
+  @Prop({ type: [{ type: [String], ref: 'SkinType' }] })
+  skinTypes!: string[];
+
+  @Prop({ required: true })
+  mainImage!: string;
+
+  @Prop({ type: [String], default: [] })
+  galleryImages!: string[];
+
+  @Prop({ default: '' })
+  description!: string;
+
+  @Prop({ default: '' })
+  detailInfo!: string;
+
+  @Prop({ type: [ProductVariant], default: [] })
+  variants!: ProductVariant[];
+
+  @Prop({ default: true })
+  isActive!: boolean;
+
+  @Prop({ default: false })
+  isDeleted!: boolean;
+}
+
+export const ProductSchema = SchemaFactory.createForClass(Product);
+ProductSchema.index({ name: 'text', description: 'text' });
