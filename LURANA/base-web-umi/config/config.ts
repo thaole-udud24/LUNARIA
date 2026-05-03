@@ -8,6 +8,7 @@ import routes from './routes';
 export default defineConfig({
 	hash: true,
 	antd: {},
+	mock: {},
 	dva: {
 		hmr: true,
 	},
