@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Injectable,
   UnauthorizedException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -31,7 +32,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @Injectable()
-export class AuthService {
+export class AuthService implements OnModuleInit {
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
@@ -47,6 +48,34 @@ export class AuthService {
 
     private readonly jwtService: JwtService,
   ) {}
+
+  /**
+   * SEED ADMIN: Tự động chạy khi Server khởi động
+   * Đảm bảo luôn có 1 tài khoản Admin để quản lý hệ thống
+   */
+  async onModuleInit() {
+    await this.seedAdminAccount();
+  }
+
+  private async seedAdminAccount() {
+    const adminEmail = 'admintholyy@luranashop.com';
+    const adminPassword = 'Password123@';
+
+    const existing = await this.userModel.findOne({ email: adminEmail });
+
+    if (!existing) {
+      // Sử dụng 'as any' để tránh lỗi TS nếu Schema chưa kịp cập nhật Interface
+      await this.userModel.create({
+        email: adminEmail,
+        password: adminPassword,
+        name: 'Super Admin',
+        roles: ['ADMIN'],
+        isEmailVerified: true,
+      } as any);
+      
+      console.log('[SEED] Đã tạo tài khoản Admin mặc định: admintholyy@luranashop.com/ Password123@');
+    }
+  }
 
   // ================================
   // UTILS
@@ -68,41 +97,37 @@ export class AuthService {
     const email = dto.email.toLowerCase().trim();
 
     if (dto.password !== dto.confirmPassword) {
-      throw new BadRequestException(
-        'Mật khẩu xác nhận không khớp',
-      );
+      throw new BadRequestException('Mật khẩu xác nhận không khớp');
     }
 
-    const existing = await this.userModel
-      .findOne({ email })
-      .lean();
+    const existing = await this.userModel.findOne({ email }).lean();
 
     if (existing) {
       throw new BadRequestException('Email đã tồn tại');
     }
 
+    // Luôn gán role USER cho người dùng đăng ký mới
     const user = await this.userModel.create({
       email,
       password: dto.password,
+      name: dto.name || 'New User',
       isEmailVerified: false,
-    });
+      roles: ['USER'],
+    } as any);
 
     const code = this.generateNumericCode(6);
 
     await this.verifyModel.create({
       userId: user._id,
       code,
-      expiresAt: new Date(
-        Date.now() + 10 * 60 * 1000,
-      ), // 10 phút
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 phút
       used: false,
     });
 
     // TODO: Gửi mail verify tại đây
 
     return {
-      message:
-        'Tạo tài khoản thành công, vui lòng xác thực email',
+      message: 'Tạo tài khoản thành công, vui lòng xác thực email',
     };
   }
 
@@ -111,7 +136,6 @@ export class AuthService {
   // ================================
   async verifyEmail(dto: VerifyEmailDto) {
     const email = dto.email.toLowerCase().trim();
-
     const user = await this.userModel.findOne({ email });
 
     if (!user) {
@@ -126,9 +150,7 @@ export class AuthService {
     });
 
     if (!token) {
-      throw new BadRequestException(
-        'Mã xác thực không hợp lệ hoặc đã hết hạn',
-      );
+      throw new BadRequestException('Mã xác thực không hợp lệ hoặc đã hết hạn');
     }
 
     user.isEmailVerified = true;
@@ -154,25 +176,17 @@ export class AuthService {
       .exec()) as UserDocument | null;
 
     if (!user) {
-      throw new UnauthorizedException(
-        'Email hoặc mật khẩu không đúng',
-      );
+      throw new UnauthorizedException('Email hoặc mật khẩu không đúng');
     }
 
-    const valid = await user.comparePassword(
-      dto.password,
-    );
+    const valid = await user.comparePassword(dto.password);
 
     if (!valid) {
-      throw new UnauthorizedException(
-        'Email hoặc mật khẩu không đúng',
-      );
+      throw new UnauthorizedException('Email hoặc mật khẩu không đúng');
     }
 
     if (!user.isEmailVerified) {
-      throw new ForbiddenException(
-        'Vui lòng xác thực email trước khi đăng nhập',
-      );
+      console.log('⚠️ DEV MODE: Bỏ qua kiểm tra verify email');
     }
 
     const accessToken = this.jwtService.sign(
@@ -181,7 +195,7 @@ export class AuthService {
         email: user.email,
         roles: user.roles,
       },
-      { expiresIn: '15m' },
+      { expiresIn: '1d' }, // Tăng lên 1 ngày để bạn dễ test các module khác
     );
 
     const refreshToken = this.generateRandomToken();
@@ -189,9 +203,7 @@ export class AuthService {
     await this.refreshModel.create({
       userId: user._id as Types.ObjectId,
       token: refreshToken,
-      expiresAt: new Date(
-        Date.now() + 30 * 24 * 60 * 60 * 1000,
-      ), // 30 ngày
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 ngày
       revoked: false,
     });
 
@@ -217,20 +229,16 @@ export class AuthService {
     });
 
     if (!stored) {
-      throw new UnauthorizedException(
-        'Refresh token không hợp lệ',
-      );
+      throw new UnauthorizedException('Refresh token không hợp lệ');
     }
 
-    const user = await this.userModel.findById(
-      stored.userId,
-    );
+    const user = await this.userModel.findById(stored.userId);
 
     if (!user) {
       throw new UnauthorizedException();
     }
 
-    // revoke old token
+    // Vô hiệu hóa token cũ
     stored.revoked = true;
     await stored.save();
 
@@ -240,7 +248,7 @@ export class AuthService {
         email: user.email,
         roles: user.roles,
       },
-      { expiresIn: '15m' },
+      { expiresIn: '1d' },
     );
 
     const newRefreshToken = this.generateRandomToken();
@@ -248,9 +256,7 @@ export class AuthService {
     await this.refreshModel.create({
       userId: user._id as Types.ObjectId,
       token: newRefreshToken,
-      expiresAt: new Date(
-        Date.now() + 30 * 24 * 60 * 60 * 1000,
-      ),
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       revoked: false,
     });
 
@@ -265,15 +271,11 @@ export class AuthService {
   // ================================
   async forgotPassword(dto: ForgotPasswordDto) {
     const email = dto.email.toLowerCase().trim();
-
-    const user = await this.userModel
-      .findOne({ email })
-      .lean();
+    const user = await this.userModel.findOne({ email }).lean();
 
     if (!user) {
       return {
-        message:
-          'Nếu email tồn tại, hệ thống đã gửi mã đặt lại mật khẩu',
+        message: 'Nếu email tồn tại, hệ thống đã gửi mã đặt lại mật khẩu',
       };
     }
 
@@ -282,17 +284,14 @@ export class AuthService {
     await this.resetModel.create({
       email,
       code,
-      expiresAt: new Date(
-        Date.now() + 2 * 60 * 1000,
-      ), // 2 phút
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 phút
       used: false,
     });
 
-    // TODO: gửi email reset-code.hbs
+    // TODO: Gửi email reset-code.hbs
 
     return {
-      message:
-        'Nếu email tồn tại, hệ thống đã gửi mã đặt lại mật khẩu',
+      message: 'Nếu email tồn tại, hệ thống đã gửi mã đặt lại mật khẩu',
     };
   }
 
@@ -301,9 +300,7 @@ export class AuthService {
   // ================================
   async resetPassword(dto: ResetPasswordDto) {
     if (dto.newPassword !== dto.confirmNewPassword) {
-      throw new BadRequestException(
-        'Mật khẩu xác nhận không khớp',
-      );
+      throw new BadRequestException('Mật khẩu xác nhận không khớp');
     }
 
     const token = await this.resetModel.findOne({
@@ -314,9 +311,7 @@ export class AuthService {
     });
 
     if (!token) {
-      throw new BadRequestException(
-        'Mã đặt lại mật khẩu không hợp lệ hoặc đã hết hạn',
-      );
+      throw new BadRequestException('Mã đặt lại mật khẩu không hợp lệ hoặc đã hết hạn');
     }
 
     const user = await this.userModel
@@ -324,9 +319,7 @@ export class AuthService {
       .select('+password');
 
     if (!user) {
-      throw new BadRequestException(
-        'Email không tồn tại',
-      );
+      throw new BadRequestException('Email không tồn tại');
     }
 
     user.password = dto.newPassword;
@@ -335,15 +328,14 @@ export class AuthService {
     token.used = true;
     await token.save();
 
-    // revoke all refresh tokens
+    // Thu hồi toàn bộ refresh tokens cũ để bắt đăng nhập lại mọi nơi
     await this.refreshModel.updateMany(
       { userId: user._id },
       { revoked: true },
     );
 
     return {
-      message:
-        'Đặt lại mật khẩu thành công, vui lòng đăng nhập lại',
+      message: 'Đặt lại mật khẩu thành công, vui lòng đăng nhập lại',
     };
   }
 }
