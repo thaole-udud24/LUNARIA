@@ -12,17 +12,8 @@ export class ProductsService {
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
   ) {}
 
-  /**
-   * Tạo sản phẩm mới
-   */
-  async create(createProductDto: CreateProductDto): Promise<ProductDocument> {
-    const existingProduct = await this.productModel.findOne({ sku: createProductDto.sku }).exec();
-    if (existingProduct) {
-      throw new BadRequestException('Mã SKU này đã tồn tại trên hệ thống');
-    }
-
-    // Tạo slug SEO-friendly
-    const slug = createProductDto.name
+  private generateSlug(name: string): string {
+    return name
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
@@ -31,7 +22,33 @@ export class ProductsService {
       .replace(/(\s+)/g, '-')
       .replace(/-+/g, '-')
       .replace(/^-+|-+$/g, '') + '-' + Date.now();
+  }
 
+  private generateAutoSKU(name: string): string {
+    const nameAcronym = name
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[đĐ]/g, 'd')
+      .split(' ')
+      .filter(w => w.length > 0)
+      .map(w => w[0])
+      .join('')
+      .toUpperCase();
+    
+    const year = new Date().getFullYear().toString().slice(-2);
+    const random = Math.floor(1000 + Math.random() * 9000);
+    return `LRN-${nameAcronym}${year}-${random}`;
+  }
+
+  async create(createProductDto: CreateProductDto): Promise<ProductDocument> {
+    const sku = createProductDto.sku || this.generateAutoSKU(createProductDto.name);
+    
+    const existingProduct = await this.productModel.findOne({ sku }).exec();
+    if (existingProduct) {
+      throw new BadRequestException('Mã SKU này đã tồn tại trên hệ thống');
+    }
+
+    const slug = this.generateSlug(createProductDto.name);
     const variants = createProductDto.variants?.map((v) => ({
       ...v,
       profit: (v.priceSell || 0) - (v.priceImport || 0),
@@ -39,6 +56,7 @@ export class ProductsService {
 
     const newProduct = new this.productModel({
       ...createProductDto,
+      sku,
       slug,
       variants,
     });
@@ -46,9 +64,6 @@ export class ProductsService {
     return newProduct.save();
   }
 
-  /**
-   * Xem chi tiết đầy đủ (Cho Admin - Thấy giá nhập)
-   */
   async findOne(id: string): Promise<ProductDocument> {
     const product = await this.productModel
       .findOne({ _id: id, isDeleted: false })
@@ -59,13 +74,10 @@ export class ProductsService {
     return product;
   }
 
-  /**
-   * Xem chi tiết công khai (Cho Khách - Ẩn giá nhập)
-   */
   async findOnePublic(id: string) {
     const product = await this.productModel
       .findOne({ _id: id, isDeleted: false, isActive: true })
-      .select('-variants.priceImport') // Ẩn trường nhạy cảm
+      .select('-variants.priceImport -variants.profit')
       .populate('category', 'name slug')
       .exec();
       
@@ -73,9 +85,6 @@ export class ProductsService {
     return product;
   }
 
-  /**
-   * Cập nhật thông tin sản phẩm
-   */
   async update(id: string, updateProductDto: UpdateProductDto): Promise<ProductDocument> {
     const existingProduct = await this.productModel.findById(id).exec();
     if (!existingProduct || existingProduct.isDeleted) {
@@ -83,7 +92,7 @@ export class ProductsService {
     }
 
     if (updateProductDto.name && updateProductDto.name !== existingProduct.name) {
-      // Logic tạo slug tương tự như khi create
+      (updateProductDto as any).slug = this.generateSlug(updateProductDto.name);
     }
 
     if (updateProductDto.variants) {
@@ -103,9 +112,6 @@ export class ProductsService {
     return updatedProduct;
   }
 
-  /**
-   * Lấy danh sách sản phẩm (Client)
-   */
   async findAll(query: ListProductsDto) {
     const { search, category, skinTypes, minPrice, maxPrice, page = 1, limit = 10 } = query;
     const filters: any = { isDeleted: false, isActive: true };
@@ -113,7 +119,6 @@ export class ProductsService {
     if (search) filters.$text = { $search: search };
     if (category) filters.category = new Types.ObjectId(category);
     
-    // Nếu skinTypes là mảng string đơn giản, dùng $in trực tiếp
     if (skinTypes && skinTypes.length > 0) {
       filters.skinTypes = { $in: skinTypes };
     }
@@ -129,7 +134,7 @@ export class ProductsService {
     const [data, total] = await Promise.all([
       this.productModel
         .find(filters)
-        .select('-variants.priceImport') // Ẩn giá nhập ở danh sách luôn cho chắc
+        .select('-variants.priceImport -variants.profit')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -141,9 +146,6 @@ export class ProductsService {
     return { data, total, page, lastPage: Math.ceil(total / limit) };
   }
 
-  /**
-   * Xóa mềm sản phẩm (Đổi tên từ softDelete -> remove)
-   */
   async remove(id: string): Promise<{ message: string }> {
     const product = await this.productModel.findByIdAndUpdate(
       id,

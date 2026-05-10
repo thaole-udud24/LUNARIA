@@ -14,8 +14,8 @@ import { CategoriesAdminController } from './categories.admin.controller';
   imports: [
     MongooseModule.forFeature([
       { name: Product.name, schema: ProductSchema },
-      { name: 'Category', schema: CategorySchema },
-      { name: 'SkinType', schema: SkinTypeSchema },
+      { name: Category.name, schema: CategorySchema },
+      { name: SkinType.name, schema: SkinTypeSchema },
     ]),
   ],
   controllers: [

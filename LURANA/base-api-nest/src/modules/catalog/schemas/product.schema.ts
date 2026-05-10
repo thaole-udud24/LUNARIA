@@ -20,6 +20,9 @@ export class ProductVariant {
 
   @Prop({ required: true })
   weight!: number;
+
+  @Prop({ default: 0 })
+  profit!: number;
 }
 
 export type ProductDocument = Product & Document;
@@ -38,7 +41,7 @@ export class Product {
   @Prop({ type: Types.ObjectId, ref: 'Category', required: true })
   category!: Types.ObjectId;
 
-  @Prop({ type: [{ type: [String], ref: 'SkinType' }] })
+  @Prop({ type: [String], default: [] })
   skinTypes!: string[];
 
   @Prop({ required: true })

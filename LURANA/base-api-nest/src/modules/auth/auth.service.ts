@@ -73,7 +73,7 @@ export class AuthService implements OnModuleInit {
         isEmailVerified: true,
       } as any);
       
-      console.log('🚀 [SEED] Đã tạo tài khoản Admin mặc định: admintholyy@luranashop.com/ Password123@');
+      console.log('[SEED] Đã tạo tài khoản Admin mặc định: admintholyy@luranashop.com/ Password123@');
     }
   }
 
