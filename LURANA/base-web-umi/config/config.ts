@@ -1,68 +1,23 @@
-// https://umijs.org/config/
-import { defineConfig } from 'umi';
-import defaultSettings from './defaultSettings';
-import routes from './routes';
-// import proxy from './proxy';
-// const { REACT_APP_ENV } = process.env;
+﻿import { defineConfig } from 'umi';
 
 export default defineConfig({
-	hash: true,
-	antd: {},
-	mock: {},
-	dva: {
-		hmr: true,
-	},
-	layout: {
-		// https://umijs.org/zh-CN/plugins/plugin-layout
-		locale: true,
-		...defaultSettings,
-	},
-	// https://umijs.org/zh-CN/plugins/plugin-locale
-	locale: {
-		// enable: true,
-		default: 'vi-VN',
-		antd: true,
-		// default true, when it is true, will use `navigator.language` overwrite default
-		baseNavigator: false,
-		// baseSeparator: '_',
-	},
-	dynamicImport: {
-		loading: '@ant-design/pro-layout/es/PageLoading',
-	},
-	targets: {
-		ie: 11,
-	},
-	routes,
-	// Theme for antd: https://ant.design/docs/react/customize-theme-cn
-	theme: {
-		'primary-color': defaultSettings.primaryColor,
-		'border-radius-base': defaultSettings.borderRadiusBase,
-	},
-	// esbuild is father build tools
-	// https://umijs.org/plugins/plugin-esbuild
-	esbuild: {},
-	title: false,
-	ignoreMomentLocale: true,
-	// proxy: proxy[REACT_APP_ENV || 'dev'],
-	manifest: {
-		basePath: '/',
-	},
-	// Fast Refresh 热更新
-	fastRefresh: {},
-
-	nodeModulesTransform: {
-		type: 'none',
-	},
-	// mfsu: {},
-	webpack5: {},
-	exportStatic: {},
-	define: Object.entries(process.env).reduce((result, [key, value]) => {
-		if (key.startsWith('APP_CONFIG_')) {
-			return {
-				...result,
-				[key]: value,
-			};
-		}
-		return result;
-	}, {}),
+  routes: [
+    {
+      path: '/',
+      component: '@/layouts/ShopLayout',
+      routes: [
+        { path: '/', redirect: '/home' },
+        { path: '/home', component: '@/pages/shop/Home/index.tsx', name: 'Trang chủ' },
+        { path: '/products', component: '@/pages/shop/Products/index.tsx', name: 'Sản phẩm' },
+        { path: '/product-detail', component: '@/pages/shop/ProductDetail/index.tsx', name: 'Chi tiết sản phẩm' },
+        { path: '/cart', component: '@/pages/shop/Cart/index.tsx', name: 'Giỏ hàng' },
+        { path: '/checkout', component: '@/pages/shop/Checkout/index.tsx', name: 'Thanh toán' },
+        { path: '/orders', component: '@/pages/shop/Orders/index.tsx', name: 'Đơn hàng' },
+        { path: '/order-detail', component: '@/pages/shop/OrderDetail/index.tsx', name: 'Chi tiết đơn hàng' },
+        { path: '/profile', component: '@/pages/shop/Profile/index.tsx', name: 'Hồ sơ' },
+        { path: '/support', component: '@/pages/shop/Support/index.tsx', name: 'Hỗ trợ' },
+      ],
+    },
+    { path: '/*', component: '@/pages/404.tsx' },
+  ],
 });

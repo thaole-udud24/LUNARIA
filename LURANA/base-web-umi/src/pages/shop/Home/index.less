@@ -1,0 +1,423 @@
+﻿@primary: #ff8c7a;
+@secondary: #f7c5b8;
+@bg-light: #fff6f3;
+@bg-soft: #fff0eb;
+@text-main: #1a1a1a;
+@text-muted: #6b6b6b;
+@card-bg: #fff;
+@border: rgba(255, 140, 122, 0.18);
+
+.landingPage {
+  background: #fff;
+  color: @text-main;
+}
+
+.heroSection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+  padding: 80px 8%;
+  background: linear-gradient(180deg, #fff8f5 0%, #fff 100%);
+  min-height: 780px;
+  overflow: hidden;
+}
+
+.heroContent {
+  max-width: 580px;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(255, 140, 122, 0.12);
+  color: @primary;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  font-size: 13px;
+}
+
+.heroTitle {
+  font-size: 56px;
+  line-height: 1.05;
+  margin: 0 0 28px;
+  font-family: 'Playfair Display', serif;
+}
+
+.heroText {
+  color: @text-muted;
+  font-size: 18px;
+  line-height: 1.8;
+  max-width: 520px;
+  margin-bottom: 38px;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.heroActions :global(.ant-btn) {
+  min-width: 180px;
+  border-radius: 14px;
+  height: 54px;
+  font-weight: 600;
+}
+
+.heroActions :global(.ant-btn-primary) {
+  background: @text-main;
+  border-color: @text-main;
+}
+
+.heroActions :global(.ant-btn-primary:hover),
+.heroActions :global(.ant-btn-primary:focus) {
+  background: darken(@text-main, 10%);
+  border-color: darken(@text-main, 10%);
+}
+
+.heroVisual {
+  position: relative;
+  flex: 1;
+  min-height: 640px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.heroCircle {
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle at top left, rgba(255, 140, 122, 0.18), transparent 55%);
+  filter: blur(4px);
+}
+
+.heroImage {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  border-radius: 30px;
+  box-shadow: 0 40px 80px rgba(25, 25, 25, 0.12);
+  object-fit: cover;
+  z-index: 1;
+}
+
+.featureSection {
+  padding: 40px 8px 20px;
+  background: #fff;
+}
+
+.featureCard {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 22px 18px;
+  border-radius: 20px;
+  background: @bg-light;
+  border: 1px solid rgba(255, 140, 122, 0.12);
+}
+
+.featureIcon {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: rgba(255, 140, 122, 0.15);
+  color: @primary;
+  font-size: 24px;
+}
+
+.featureTitle {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.collectionSection,
+.commitmentSection,
+.stepsSection,
+.gallerySection {
+  padding: 80px 8%;
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.sectionHeader h2 {
+  font-size: 36px;
+  margin-bottom: 10px;
+  font-family: 'Playfair Display', serif;
+}
+
+.productCard {
+  border: none;
+  border-radius: 24px;
+  overflow: hidden;
+  min-height: 420px;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.productCard:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.08);
+}
+
+.productCard :global(.ant-card-cover) {
+  background: @bg-soft;
+}
+
+.productCard :global(img) {
+  width: 100%;
+  height: 340px;
+  object-fit: cover;
+}
+
+.productTag {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 2;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: @primary;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.productPrice {
+  font-size: 18px;
+  color: @primary;
+  font-weight: 700;
+}
+
+.commitmentCard {
+  display: flex;
+  gap: 18px;
+  padding: 28px;
+  border-radius: 24px;
+  background: @bg-light;
+  border: 1px solid rgba(255, 140, 122, 0.12);
+  min-height: 220px;
+}
+
+.commitmentIcon {
+  width: 60px;
+  height: 60px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: rgba(255, 140, 122, 0.16);
+  color: @primary;
+  font-size: 28px;
+}
+
+.commitmentTitle {
+  margin: 0;
+  font-size: 18px;
+}
+
+.commitmentText {
+  margin: 12px 0 0;
+  color: @text-muted;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.statsSection {
+  padding: 60px 8%;
+  background: linear-gradient(180deg, #fff6f0 0%, #fff 100%);
+}
+
+.statBox {
+  padding: 28px 20px;
+  border-radius: 24px;
+  background: #fff;
+  text-align: center;
+  border: 1px solid rgba(255, 140, 122, 0.14);
+}
+
+.statValue {
+  font-size: 44px;
+  font-weight: 800;
+  color: @text-main;
+  margin-bottom: 10px;
+}
+
+.statLabel {
+  color: @text-muted;
+  font-size: 15px;
+}
+
+.stepCard {
+  padding: 28px 24px;
+  border-radius: 24px;
+  background: #fff;
+  border: 1px solid rgba(255, 140, 122, 0.12);
+  min-height: 240px;
+}
+
+.stepNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(255, 140, 122, 0.12);
+  color: @primary;
+  font-weight: 800;
+  margin-bottom: 18px;
+}
+
+.stepTitle {
+  margin: 0;
+  font-size: 18px;
+}
+
+.stepText {
+  color: @text-muted;
+  font-size: 15px;
+  margin-top: 12px;
+  line-height: 1.75;
+}
+
+.galleryImageWrapper {
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.06);
+}
+
+.galleryImage {
+  width: 100%;
+  display: block;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.galleryImageWrapper:hover .galleryImage {
+  transform: scale(1.03);
+}
+
+.contactSection {
+  padding: 80px 8% 100px;
+  background: linear-gradient(180deg, #fff 0%, #fff4f0 100%);
+}
+
+.contactWrapper {
+  display: flex;
+  gap: 40px;
+  align-items: stretch;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.contactPreview,
+.contactImageBox {
+  flex: 1 1 520px;
+}
+
+.contactPreview {
+  background: #fff;
+  border-radius: 30px;
+  padding: 48px;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.08);
+}
+
+.contactText {
+  color: @text-muted;
+  font-size: 16px;
+  line-height: 1.8;
+  margin-bottom: 32px;
+}
+
+.contactForm :global(.ant-form-item-label > label) {
+  color: @text-main;
+  font-weight: 600;
+}
+
+.contactForm :global(.ant-input) {
+  border-radius: 16px;
+  height: 48px;
+}
+
+.contactForm :global(.ant-btn-primary) {
+  background: @text-main;
+  border-color: @text-main;
+  border-radius: 14px;
+  min-width: 220px;
+}
+
+.contactImageBox {
+  position: relative;
+  min-height: 540px;
+}
+
+.contactImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 30px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.12);
+}
+
+@media screen and (max-width: 1200px) {
+  .heroSection {
+    padding: 60px 6%;
+    min-height: auto;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .heroVisual {
+    width: 100%;
+    min-height: 420px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .heroSection,
+  .collectionSection,
+  .commitmentSection,
+  .stepsSection,
+  .gallerySection,
+  .contactSection {
+    padding: 40px 6%;
+  }
+
+  .heroTitle {
+    font-size: 40px;
+  }
+
+  .heroText {
+    font-size: 16px;
+  }
+
+  .heroActions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .heroCircle {
+    display: none;
+  }
+
+  .heroImage {
+    border-radius: 24px;
+  }
+
+  .contactWrapper {
+    flex-direction: column;
+  }
+}

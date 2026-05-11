@@ -1,0 +1,1 @@
+export default () => <h2>Giỏ hàng</h2>;

@@ -1,0 +1,98 @@
+@primary-brand: #C8A165;
+@text-main: #1A1A1A;
+@text-secondary: #575757;
+
+.featuredSection {
+  padding: 80px 12%;
+  background: #fff;
+}
+
+.featuredHeader {
+  text-align: center;
+  margin-bottom: 42px;
+}
+
+.featuredHeader h2 {
+  font-size: 34px;
+  font-family: 'Playfair Display', serif;
+  margin-bottom: 10px;
+}
+
+.featuredSubtitle {
+  display: block;
+  max-width: 640px;
+  margin: 0 auto;
+  color: @text-secondary;
+  font-size: 15px;
+}
+
+.featuredCard {
+  border: none !important;
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.featuredCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+}
+
+.featuredCard :global(.ant-card-cover) {
+  overflow: hidden;
+  background: #faf7f2;
+}
+
+.featuredCard :global(.ant-card-cover img) {
+  width: 100%;
+  height: 320px;
+  object-fit: contain;
+  padding: 20px;
+  transition: transform 0.5s ease;
+}
+
+.featuredCard:hover :global(.ant-card-cover img) {
+  transform: scale(1.06);
+}
+
+.cardTag {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  background: #ffffff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+}
+
+.productName {
+  margin-top: 18px;
+  font-size: 16px;
+  font-weight: 600;
+  color: @text-main;
+}
+
+.productPrice {
+  display: block;
+  margin-top: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: @primary-brand;
+}
+
+.featuredActions {
+  margin-top: 36px;
+  text-align: center;
+}
+
+.featuredActions :global(.ant-btn) {
+  min-width: 220px;
+  height: 52px;
+  border-radius: 10px;
+}

@@ -1,0 +1,163 @@
+@primary: #FCE4D6;
+@primary-dark: #f5b095;
+@text-main: #333333;
+@text-muted: #6b6b6b;
+@border-color: #e8e8e8;
+
+.header {
+  background: #fff;
+  border-bottom: 1px solid @border-color;
+  padding: 0;
+  height: auto;
+  
+  :global(.ant-layout-header) {
+    padding: 0;
+  }
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 6%;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.logoText {
+  font-size: 24px;
+  font-weight: 700;
+  color: #d17b6a;
+  letter-spacing: 0.05em;
+  font-family: 'Playfair Display', serif;
+}
+
+.menuNav {
+  display: flex;
+  gap: 32px;
+  flex: 1;
+  justify-content: center;
+  
+  @media (max-width: 900px) {
+    display: none;
+  }
+}
+
+.menuItem {
+  color: @text-main;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  transition: color 0.3s ease;
+  position: relative;
+  
+  &:hover {
+    color: @primary-dark;
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: @primary-dark;
+    transition: width 0.3s ease;
+  }
+  
+  &:hover::after {
+    width: 100%;
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+  
+  @media (max-width: 900px) {
+    display: none;
+  }
+}
+
+.searchInput {
+  background-color: #f7f7f7;
+  border-radius: 20px;
+  padding: 6px 16px;
+  width: 200px;
+  transition: width 0.3s;
+  
+  &:focus-within {
+    width: 250px;
+    background-color: #fff;
+    box-shadow: 0 0 0 2px @primary;
+  }
+}
+
+.iconBtn {
+  color: @text-main;
+  transition: color 0.3s ease;
+  
+  &:hover {
+    color: @primary-dark;
+  }
+  
+  :global(.ant-btn) {
+    border: none;
+    background: transparent;
+  }
+}
+
+.hotline {
+  margin-left: 12px;
+  font-size: 14px;
+  color: @text-main;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-left: 1px solid @border-color;
+  padding-left: 16px;
+  
+  strong {
+    color: #d17b6a;
+  }
+}
+
+.mobileMenuBtn {
+  display: none;
+  color: @text-main;
+  
+  @media (max-width: 900px) {
+    display: block;
+    margin-left: auto;
+  }
+  
+  :global(.ant-btn) {
+    border: none;
+    background: transparent;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 4%;
+    height: 70px;
+    gap: 20px;
+  }
+  
+  .logoText {
+    font-size: 20px;
+  }
+}

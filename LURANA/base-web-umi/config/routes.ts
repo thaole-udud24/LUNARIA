@@ -1,36 +1,24 @@
-﻿export default [
+export default [
   {
-    path: '/auth',
-    layout: false,
+    path: '/login',
+    component: './auth/Login',
+    name: 'Đăng nhập',
+  },
+  {
+    path: '/',
+    component: '../layouts/ShopLayout', // Đảm bảo file này có tồn tại
     routes: [
-      { path: '/auth/login',
-        component: './auth/Login',
-        layout: false,
-       },
-      { path: '/auth/register',
-        component: './auth/Register',
-        layout: false, 
-      },
-      { path: '/auth/forgot-password',
-        component: './auth/ForgotPassword', 
-        layout: false, 
-      },
-      { path: '/auth/verify-code', 
-        component: './auth/VerifyCode' 
-      },
-      { path: '/auth/reset-password', 
-        component: './auth/ResetPassword', 
-        layout: false, 
-      },
-      { path: '/auth/reset-success', 
-        component: './auth/ResetSuccess' 
-      },
-      { redirect: '/auth/login' },
+      { path: '/', redirect: '/products' }, // Nếu vào "/" sẽ đá sang "/products"
+      { path: '/home', component: './shop/Home', name: 'Trang chủ' },
+      { path: '/products', component: './shop/Products', name: 'Sản phẩm' },
+      { path: '/product-detail', component: './shop/ProductDetail', name: 'Chi tiết sản phẩm' },
+      { path: '/cart', component: './shop/Cart', name: 'Giỏ hàng' },
+      { path: '/checkout', component: './shop/Checkout', name: 'Thanh toán' },
+      { path: '/orders', component: './shop/Orders', name: 'Đơn hàng' },
+      { path: '/order-detail', component: './shop/OrderDetail', name: 'Chi tiết đơn hàng' },
+      { path: '/profile', component: './shop/Profile', name: 'Hồ sơ' },
+      { path: '/support', component: './shop/Support', name: 'Hỗ trợ' },
     ],
   },
-
-  // ... routes khác shop/admin của bạn
-
-  { path: '/', redirect: '/auth/login' },
-  // { component: './404' },
+  { path: '/*', component: './404' }, // Dòng này phải luôn nằm cuối cùng
 ];

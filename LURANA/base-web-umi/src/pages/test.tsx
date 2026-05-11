@@ -1,0 +1,1 @@
+export default () => <div>Trang Test Hoạt Động!</div>

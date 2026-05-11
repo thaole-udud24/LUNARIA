@@ -1,109 +1,94 @@
-// import styles from './index.less';
-import React, { useState } from 'react';
-import { history } from 'umi';
-import { message } from 'antd';
-import { login as loginApi } from '@/services/TaiKhoan/auth.api';
-import useAuth from '@/hooks/useAuth';
+import React from 'react';
+import { Form, Input, Button, Typography, Divider } from 'antd';
+import { GoogleOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { history, Link } from 'umi';
+import styles from './index.less';
 
-export default function LoginPage() {
-  const { login } = useAuth();
+const { Title, Text } = Typography;
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleLogin = async () => {
-  if (!email || !password) {
-    return message.error('Nhập đầy đủ thông tin');
-  }
-
-  setLoading(true);
-
-  try {
-    const res = await loginApi({ email, password });
-
-    if (!res || res.success !== true) {
-      setLoading(false);
-      return message.error(res?.message || 'Đăng nhập thất bại');
-    }
-
-    //  lưu token (sau này dùng thật)
-    const token = res?.data?.access_token;
-
-    if (!token) {
-      setLoading(false);
-      return message.error('Không nhận được token');
-    }
-
-    localStorage.setItem('token', token);
-
-    message.success(res.message);
-
-    //  chuyển trang
+const LoginPage: React.FC = () => {
+  const onFinish = (values: any) => {
+    console.log('Success:', values);
     history.push('/');
-
-    return; 
-  } catch (error) {
-    message.error('Lỗi hệ thống');
-  }
-
-  setLoading(false);
   };
+
   return (
-    <div className="auth-page login"> 
-    <div className="auth-container">
-      {/* LEFT */}
-      <div className="auth-left" >
-        <div className="auth-overlay">
-          <h1>LUNARIA</h1>
-          <p>
-            Mỗi buổi sáng là một khởi đầu mới, khi làn da cần được đánh thức
-            bằng sự dịu dàng.
-          </p>
-          <button>Mua ngay</button>
+    <div className={styles.loginContainer}>
+      <div className={styles.loginCard}>
+        {/* Left Side: Background Image */}
+        <div className={styles.imageSection}>
+          <img 
+            src="https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?auto=format&fit=crop&w=800&q=80" 
+            alt="Lunaria Floral Background" 
+            className={styles.bgImage}
+          />
+        </div>
+
+        {/* Right Side: Form */}
+        <div className={styles.formSection}>
+          <Button 
+            type="text" 
+            icon={<ArrowLeftOutlined />} 
+            className={styles.backBtn}
+            onClick={() => history.push('/')}
+          >
+            Trở lại
+          </Button>
+
+          <div className={styles.formHeader}>
+            <Title level={2} className={styles.formTitle}>Chào mừng trở lại</Title>
+            <Text className={styles.formSubtitle}>Nhập thông tin để truy cập tài khoản của bạn</Text>
+          </div>
+          
+          <Button icon={<GoogleOutlined />} className={styles.googleBtn} block size="large">
+            Sign up with Google
+          </Button>
+          
+          <Divider className={styles.divider}>Or use email</Divider>
+          
+          <Form
+            name="normal_login"
+            className={styles.loginForm}
+            layout="vertical"
+            onFinish={onFinish}
+            size="large"
+          >
+            <Form.Item
+              label={<span className={styles.fieldLabel}>Email :</span>}
+              name="email"
+              rules={[{ required: true, message: 'Vui lòng nhập Email của bạn!' }]}
+            >
+              <Input placeholder="Nhập email của bạn" className={styles.inputField} />
+            </Form.Item>
+            
+            <Form.Item
+              label={<span className={styles.fieldLabel}>Mật khẩu:</span>}
+              name="password"
+              rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
+            >
+              <Input.Password placeholder="Nhập mật khẩu" className={styles.inputField} />
+            </Form.Item>
+            
+            <div className={styles.forgotPasswordWrapper}>
+              <Link className={styles.forgotPassword} to="/auth/ForgotPassword">
+                Quên mật khẩu?
+              </Link>
+            </div>
+
+            <Form.Item>
+              <Button type="primary" htmlType="submit" className={styles.loginFormButton} block>
+                Đăng nhập
+              </Button>
+            </Form.Item>
+            
+            <div className={styles.registerLink}>
+              Bạn chưa có tài khoản? <Link to="/auth/Register">Tạo tài khoản</Link>
+            </div>
+          </Form>
         </div>
       </div>
-
-      {/* RIGHT */}
-      <div className="auth-right">
-        <div className="auth-form">
-          <div className="auth-top">
-            <button className="auth-back">← Trở lại</button>
-          </div>
-
-          <h2>Chào mừng trở lại</h2>
-          <p className="auth-desc">
-            Nhập thông tin để truy cập tài khoản của bạn
-          </p>
-
-          <button className="auth-google">
-            🔵 Sign up with Google
-          </button>
-
-          <div className="auth-divider">Or use email</div>
-
-          <input
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="Mật khẩu"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-
-          <div className="auth-forgot" onClick={() => history.push('/auth/forgot-password')}>Quên mật khẩu?</div>
-
-          <button className="auth-loginBtn" onClick={handleLogin}>Đăng nhập</button>
-
-          <p className="auth-register">
-            Bạn chưa có tài khoản? <span onClick={() => history.push('/auth/register')}>Tạo tài khoản</span>
-          </p>
-      </div>
-    </div>
-    </div>
     </div>
   );
-}
+};
+
+export default LoginPage;
