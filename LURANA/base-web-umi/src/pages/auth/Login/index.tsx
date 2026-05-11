@@ -28,19 +28,39 @@ export default function LoginPage() {
     }
 
     //  lưu token (sau này dùng thật)
-    const token = res?.data?.access_token;
+    const token = res?.data?.access_token || 'fake_token';
+    // fake role
+    let role = 'user'; 
 
-    if (!token) {
-      setLoading(false);
-      return message.error('Không nhận được token');
+    if (
+      email === 'admin@gmail.com' &&
+      password === '123456'
+    ) {
+      role = 'admin';
     }
 
+
+    // lưu localStorage
     localStorage.setItem('token', token);
+    localStorage.setItem('role', role);
 
-    message.success(res.message);
+    // lưu user
+    localStorage.setItem(
+      'user',
+      JSON.stringify({
+        email,
+        role,
+      }),
+    );
 
-    //  chuyển trang
-    history.push('/');
+    message.success(res.message || 'Đăng nhập thành công');
+
+    // chuyển trang theo role
+    if (role === 'admin') {
+      history.push('/admin');
+    } else {
+      history.push('/');
+    }
 
     return; 
   } catch (error) {

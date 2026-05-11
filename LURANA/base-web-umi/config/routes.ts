@@ -28,6 +28,30 @@
       { redirect: '/auth/login' },
     ],
   },
+  
+  {
+    path: '/admin',
+    layout: false,
+    component: '@/layouts/AdminLayout',
+    routes: [
+      {
+        path: '/admin/dashboard',
+        component: '@/pages/admin/Dashboard',
+      },
+      {
+        path: '/admin/products',
+        component: '@/pages/admin/Products',
+      },
+      {
+        path: '/admin/categories',
+        component: '@/pages/admin/Categories',
+      },
+      {
+        path: '/admin/skintypes',
+        component: '@/pages/admin/SkinTypes',
+      },
+    ],
+  },
 
   // ... routes khác shop/admin của bạn
 

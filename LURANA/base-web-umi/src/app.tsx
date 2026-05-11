@@ -2,11 +2,17 @@ import { history } from 'umi';
 import '@/styles/global.less';
 
 export function layout(props: any) {
-  if (props?.location?.pathname?.startsWith('/auth')) {
+  const pathname = props?.location?.pathname || '';
+
+  if (
+    pathname.startsWith('/auth') ||
+    pathname.startsWith('/admin')
+  ) {
     return {
       layout: false,
     };
   }
+
   return {};
 }
 
