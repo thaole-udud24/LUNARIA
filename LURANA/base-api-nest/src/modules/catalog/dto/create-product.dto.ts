@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsArray, IsNumber, IsOptional, IsBoolean, ValidateNested, Min } from 'class-validator';
+import { IsNotEmpty, IsString, IsArray, IsNumber, IsOptional, IsBoolean, ValidateNested, Min, IsMongoId } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class ProductVariantDto {
@@ -25,13 +25,13 @@ export class CreateProductDto {
   @IsNotEmpty() @IsString()
   name!: string;
 
-  @IsNotEmpty() @IsString()
-  sku!: string;
+  // 🔥 ĐÃ GỠ BỎ SKU: Không cho phép nhập tay từ bên ngoài nữa
+  // Hệ thống sẽ tự sinh SKU dựa trên mã của Category trong Service.
 
-  @IsNotEmpty() @IsString()
-  category!: string; // ID của Category
+  @IsNotEmpty() @IsMongoId()
+  category!: string; // ID của Category (Bắt buộc để lấy mã loại sinh SKU)
 
-  @IsOptional() @IsArray() @IsString({ each: true })
+  @IsOptional() @IsArray() @IsMongoId({ each: true })
   skinTypes: string[] = [];
 
   @IsNotEmpty() @IsString()

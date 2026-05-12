@@ -11,13 +11,14 @@ export class CategoriesAdminController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Post()
-  create(@Body('name') name: string) {
-    return this.categoriesService.create(name);
+  create(@Body('name') name: string, @Body('code') code: string) {
+    // Nhận cả name và code để Service xử lý
+    return this.categoriesService.create(name, code);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body('name') name: string) {
-    return this.categoriesService.update(id, name);
+  update(@Param('id') id: string, @Body('name') name: string, @Body('code') code: string) {
+    return this.categoriesService.update(id, name, code);
   }
 
   @Delete(':id')

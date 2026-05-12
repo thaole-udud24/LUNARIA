@@ -41,8 +41,9 @@ export class Product {
   @Prop({ type: Types.ObjectId, ref: 'Category', required: true })
   category!: Types.ObjectId;
 
-  @Prop({ type: [String], default: [] })
-  skinTypes!: string[];
+  // FIX: Đổi từ [String] sang [Types.ObjectId] và thêm ref trỏ đến SkinType
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'SkinType' }], default: [] })
+  skinTypes!: Types.ObjectId[];
 
   @Prop({ required: true })
   mainImage!: string;
