@@ -2,7 +2,6 @@ import { extend } from 'umi-request';
 
 const request = extend({
   prefix: '',
-
   timeout: 10000,
 
   headers: {
@@ -16,10 +15,7 @@ const request = extend({
   },
 });
 
-// =========================
 // REQUEST INTERCEPTOR
-// =========================
-
 request.interceptors.request.use(
   (url, options) => {
     const token =
@@ -29,23 +25,33 @@ request.interceptors.request.use(
       url,
       options: {
         ...options,
+
         headers: {
           ...options.headers,
-          Authorization: token
-            ? `Bearer ${token}`
-            : '',
+
+          ...(token
+            ? {
+                Authorization: `Bearer ${token}`,
+              }
+            : {}),
         },
       },
     };
   },
 );
 
-// =========================
 // RESPONSE INTERCEPTOR
-// =========================
-
 request.interceptors.response.use(
   async (response) => {
+    if (response.status === 401) {
+      localStorage.removeItem(
+        'token',
+      );
+
+      window.location.href =
+        '/auth/login';
+    }
+
     return response;
   },
 );

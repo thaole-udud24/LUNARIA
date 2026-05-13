@@ -1,62 +1,138 @@
-import { useEffect, useState } from 'react';
-import type { Product } from '@/services/SanPham/types';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   Button,
   Input,
-  Space,
-  Switch,
-  Table,
-  Dropdown,
-  Menu,
-  Popconfirm,
-  message,
-  Select,
+  Pagination,
   Popover,
-  Modal,
+  Select,
+  Space,
+  message,
 } from 'antd';
 
 import {
-  FilterOutlined,
   PlusOutlined,
   SearchOutlined,
-  MenuOutlined,
-  EyeOutlined,
-  EditOutlined,
-  DeleteOutlined,
+  FilterOutlined,
 } from '@ant-design/icons';
 
-import { getAdminProducts } from '@/services/SanPham/products.api';
-import ProductForm from '@/components/admin/ProductForm';
+import type { ProductType } from '@/types/catalog';
+
+import {
+  deleteProduct,
+  getAdminProducts,
+} from '@/services/SanPham/products.api';
+
+import DataTable from '@/components/admin/DataTable';
+
+import ProductDrawer, {
+  getProductColumns,
+} from './components/ProductDrawer';
 
 import './styles.less';
 
+import {
+  initMockProducts,
+} from '../../../../mock/catalog';
+
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
+  // =========================
+  // STATES
+  // =========================
 
-  const [searchText, setSearchText] = useState('');
+  const [products, setProducts] = useState<
+    ProductType[]
+  >([]);
 
-  const [openFilter, setOpenFilter] = useState(false);
+  const [searchText, setSearchText] =
+    useState('');
 
-  const [openProductModal, setOpenProductModal] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
+
+  const [openProductDrawer, setOpenProductDrawer] =
+    useState(false);
+
+  const [drawerMode, setDrawerMode] =
+    useState<
+      'create' | 'edit' | 'detail'
+    >('create');
+
+  const [selectedProduct, setSelectedProduct] =
+    useState<ProductType | null>(
+      null,
+    );
+
+  const [currentPage, setCurrentPage] =
+    useState(1);
+
+  const [pageSize, setPageSize] =
+    useState(10);
+
+  // =========================
+  // FETCH PRODUCTS
+  // =========================
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+
+      const res =
+        await getAdminProducts();
+
+      setProducts(res.data || []);
+    } catch (error) {
+      message.error(
+        'Không thể tải danh sách sản phẩm',
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
+    initMockProducts();
+
     fetchProducts();
   }, []);
 
-  const fetchProducts = async () => {
-    const res = await getAdminProducts();
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchText]);
 
-    setProducts(res.data || []);
-  };
+  // =========================
+  // HANDLERS
+  // =========================
+
+  const handleDeleteProduct =
+    async (productId: number) => {
+      try {
+        await deleteProduct(productId);
+
+        setProducts((prev) =>
+          prev.filter(
+            (item) =>
+              item.id !== productId,
+          ),
+        );
+
+        message.success(
+          'Xóa sản phẩm thành công',
+        );
+      } catch (error) {
+        message.error(
+          'Xóa sản phẩm thất bại',
+        );
+      }
+    };
 
   const handleToggleStatus = (
     checked: boolean,
-    record: Product,
+    productId: number,
   ) => {
     setProducts((prev) =>
       prev.map((item) =>
-        item.id === record.id
+        item.id === productId
           ? {
               ...item,
               active: checked,
@@ -66,155 +142,63 @@ export default function ProductsPage() {
     );
   };
 
-  const handleDeleteProduct = (
-    productId: number,
-  ) => {
-    setProducts((prev) =>
-      prev.filter(
-        (item) => item.id !== productId,
-      ),
-    );
+  // =========================
+  // FILTER / SEARCH
+  // =========================
 
-    message.success(
-      'Xóa sản phẩm thành công',
-    );
-  };
-
-  const filteredProducts = products.filter(
-    (item) =>
-      item.name
+  const filteredProducts = useMemo(() => {
+    return products.filter((item) =>
+      (item.name || '')
         .toLowerCase()
         .includes(
-          searchText.toLowerCase(),
+          searchText
+          .trim()
+          .toLowerCase(),
         ),
-  );
+    );
+  }, [products, searchText]);
 
-  const renderActionMenu = (
-    record: Product,
-  ) => (
-    <Menu>
-      <Menu.Item
-        key="detail"
-        icon={<EyeOutlined />}
-        onClick={() =>
-          console.log(
-            'Xem chi tiết',
-            record,
-          )
-        }
-      >
-        Xem chi tiết
-      </Menu.Item>
+  // =========================
+  // PAGINATION
+  // =========================
 
-      <Menu.Item
-        key="edit"
-        icon={<EditOutlined />}
-        onClick={() =>
-          console.log(
-            'Chỉnh sửa',
-            record,
-          )
-        }
-      >
-        Chỉnh sửa
-      </Menu.Item>
+  const paginatedProducts = useMemo(() => {
+    return filteredProducts.slice(
+      (currentPage - 1) * pageSize,
+      currentPage * pageSize,
+    );
+  }, [
+    filteredProducts,
+    currentPage,
+    pageSize,
+  ]);
 
-      <Menu.Item
-        key="delete"
-        danger
-      >
-        <Popconfirm
-          title="Xác nhận xóa sản phẩm?"
-          okText="Ok"
-          cancelText="Hủy"
-          placement="left"
-          onConfirm={() =>
-            handleDeleteProduct(record.id)
-          }
-        >
-          <div className="action-item delete-item">
-            <DeleteOutlined />
-            <span>Xóa</span>
-          </div>
-        </Popconfirm>
-      </Menu.Item>
-    </Menu>
-  );
+  // =========================
+  // TABLE COLUMNS
+  // =========================
 
-  const columns = [
-    {
-      title: 'STT',
-      render: (_: any, __: any, index: number) =>
-        index + 1,
+  const columns = getProductColumns({
+    onDelete: handleDeleteProduct,
 
-      width: 80,
+    onToggleStatus:
+      handleToggleStatus,
+
+    onView: (product) => {
+      setDrawerMode('detail');
+
+      setSelectedProduct(product);
+
+      setOpenProductDrawer(true);
     },
 
-    {
-      title: 'Sản phẩm',
-      dataIndex: 'name',
+    onEdit: (product) => {
+      setDrawerMode('edit');
 
-      render: (text: string, record: any) => (
-        <div className="admin-products-product">
-          <img src={record.image} />
+      setSelectedProduct(product);
 
-          <span>{text}</span>
-        </div>
-      ),
+      setOpenProductDrawer(true);
     },
-
-    {
-      title: 'Giá',
-      dataIndex: 'price',
-
-      render: (value: number) =>
-        `${value.toLocaleString()} đ`,
-    },
-
-    {
-      title: 'Tồn kho',
-      dataIndex: 'stock',
-    },
-
-    {
-      title: 'Trạng thái',
-      dataIndex: 'active',
-
-      render: (
-        value: boolean,
-        record: Product,
-      ) => (
-        <Switch
-          checked={value}
-          className="admin-status-switch"
-          onChange={(checked) =>
-            handleToggleStatus(
-              checked,
-              record,
-            )
-          }
-        />
-      ),
-    },
-
-    {
-      title: 'Thao tác',
-
-      render: (_: any, record: Product) => (
-        <Dropdown
-          overlay={renderActionMenu(record)}
-          trigger={['click']}
-          placement="bottomRight"
-        >
-          <div className="admin-products-action">
-            <MenuOutlined />
-          </div>
-        </Dropdown>
-      ),
-
-      width: 120,
-    },
-  ];
+  });
 
   const filterContent = (
     <div className="admin-filter-popup">
@@ -222,44 +206,31 @@ export default function ProductsPage() {
         Tùy chỉnh bộ lọc
       </div>
 
-      {/* SẢN PHẨM */}
       <div className="filter-group">
-        <label>Sản phẩm :</label>
+        <label>Loại sản phẩm</label>
 
         <Select
-          placeholder=""
+          placeholder="Chọn loại"
           style={{ width: '100%' }}
         />
       </div>
 
-      {/* LOẠI DA */}
       <div className="filter-group">
-        <label>Loại da :</label>
+        <label>Loại da</label>
 
         <Select
-          placeholder=""
+          placeholder="Chọn loại da"
           style={{ width: '100%' }}
         />
       </div>
 
-      {/* GIÁ */}
-      <div className="filter-group">
-        <label>Giá:</label>
-
-        <Select
-          placeholder=""
-          style={{ width: '100%' }}
-        />
-      </div>
-
-      {/* BUTTON */}
       <div className="filter-actions">
         <Button>
           Đặt lại
         </Button>
 
-        <Button className="apply-filter-btn">
-          Áp dụng ngay
+        <Button type="primary">
+          Áp dụng
         </Button>
       </div>
     </div>
@@ -267,7 +238,9 @@ export default function ProductsPage() {
 
   return (
     <div className="admin-products-page">
-      {/* HEADER */}
+      {/* =========================
+          HEADER
+      ========================= */}
 
       <div className="admin-products-header">
         <div>
@@ -276,23 +249,27 @@ export default function ProductsPage() {
           </div>
 
           <div className="admin-products-breadcrumb">
-            Trang chủ &gt; Sản phẩm &gt;
-            Danh sách sản phẩm
+            Trang chủ &gt; Sản phẩm
+            &gt; Danh sách sản phẩm
           </div>
         </div>
       </div>
 
-      {/* TOOLBAR */}
+      {/* =========================
+          TOOLBAR
+      ========================= */}
 
       <div className="admin-products-toolbar">
         <div className="admin-products-search">
           <Input
-            placeholder="Tìm kiếm "
+            placeholder="Tìm kiếm"
             bordered={false}
-            value={searchText}
             allowClear
+            value={searchText}
             onChange={(e) =>
-              setSearchText(e.target.value)
+              setSearchText(
+                e.target.value,
+              )
             }
           />
 
@@ -300,11 +277,11 @@ export default function ProductsPage() {
         </div>
 
         <Space size={14}>
+
           <Popover
             content={filterContent}
             trigger="click"
             placement="bottomRight"
-            overlayClassName="filter-popover"
           >
             <Button
               icon={<FilterOutlined />}
@@ -318,59 +295,114 @@ export default function ProductsPage() {
             type="primary"
             icon={<PlusOutlined />}
             className="add-btn"
-            onClick={() =>
-              setOpenProductModal(true)
-            }
+            onClick={() => {
+              setDrawerMode('create');
+
+              setSelectedProduct(null);
+
+              setOpenProductDrawer(
+                true,
+              );
+            }}
           >
             Thêm mới
           </Button>
         </Space>
       </div>
 
-      {/* TABLE */}
+      {/* =========================
+          TABLE
+      ========================= */}
 
       <div className="admin-products-table">
-        <Table
+        <DataTable
           rowKey="id"
+          loading={loading}
           columns={columns}
-          dataSource={filteredProducts}
+          dataSource={
+            paginatedProducts
+          }
           locale={{
             emptyText:
               'Không tìm thấy sản phẩm',
           }}
-          pagination={{
-            pageSize: 10,
+        />
+      </div>
+
+      {/* =========================
+          PAGINATION
+      ========================= */}
+
+      <div className="custom-pagination">
+        <div className="pagination-total">
+          Tổng số:
+          {' '}
+          {filteredProducts.length}
+        </div>
+
+        <Pagination
+          current={currentPage}
+          pageSize={pageSize}
+          total={
+            filteredProducts.length
+          }
+          showSizeChanger
+          pageSizeOptions={[
+            '10',
+            '20',
+            '50',
+          ]}
+          onChange={(page, size) => {
+            setCurrentPage(page);
+
+            setPageSize(size || 10);
           }}
         />
       </div>
-      
-      <Modal
-        visible={openProductModal}
-        onCancel={() =>
-          setOpenProductModal(false)
-        }
-        footer={null}
-        width={900}
-        centered
-        destroyOnClose
-        className="product-modal"
-      >
-        <ProductForm
-          onCancel={() =>
-            setOpenProductModal(false)
-          }
-          onSuccess={() => {
-            setOpenProductModal(false);
 
-            fetchProducts();
+      {/* =========================
+          PRODUCT DRAWER
+      ========================= */}
+
+      <ProductDrawer
+        open={openProductDrawer}
+        mode={drawerMode}
+        product={selectedProduct}
+        onClose={() =>
+          setOpenProductDrawer(false)
+        }
+        onSuccess={(newProduct) => {
+
+          // EDIT
+          if (drawerMode === 'edit') {
+            setProducts((prev) =>
+              prev.map((item) =>
+                item.id === newProduct.id
+                  ? newProduct
+                  : item,
+              ),
+            );
+
+            message.success(
+              'Cập nhật sản phẩm thành công',
+            );
+          }
+
+          // CREATE
+          else {
+            setProducts((prev) => [
+              newProduct,
+              ...prev,
+            ]);
 
             message.success(
               'Thêm sản phẩm thành công',
             );
-          }}
-        />
-      </Modal>
+          }
 
+          setOpenProductDrawer(false);
+        }}
+      />
     </div>
   );
 }

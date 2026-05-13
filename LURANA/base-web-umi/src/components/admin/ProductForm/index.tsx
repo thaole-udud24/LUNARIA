@@ -1,4 +1,9 @@
-import { useState } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+
 import {
   Button,
   Col,
@@ -7,598 +12,868 @@ import {
   InputNumber,
   Row,
   Select,
-  Upload,
-  Switch,
+  message,
 } from 'antd';
 
-import {
-  PlusOutlined,
-} from '@ant-design/icons';
 
 import './styles.less';
 
+import type {
+  ProductType,
+  VariantType,
+} from '@/types/catalog';
+
+import {
+  createProduct,
+} from '@/services/SanPham/products.api';
+
+import {
+  PRODUCT_REQUIRED_FIELDS,
+} from './schema';
+
+import {
+  getSkinTypes,
+  type SkinTypeType,
+} from '@/services/DanhMuc/skinTypes.api';
+
+import VariantEditor from '@/pages/admin/Products/components/VariantEditor';
+import ProductImageUpload from '@/pages/admin/Products/components/ProductImageUpload';
+
+
+// =========================
+// TYPES
+// =========================
+
 interface Props {
-  onSuccess?: () => void;
+  initialValues?: ProductType | null;
+
+  mode?: 'create' | 'edit' | 'detail';
+
+  onSuccess?: (
+    newProduct: ProductType,
+  ) => void;
+
   onCancel?: () => void;
 }
 
+// =========================
+// CONSTANTS
+// =========================
+
+const createDefaultVariant =
+  (): VariantType => ({
+    weight: 0,
+    importPrice: 0,
+    price: 0,
+    stock: 0,
+  });
+// =========================
+// COMPONENT
+// =========================
+
 export default function ProductForm({
+  initialValues,
+  mode = 'create',
   onSuccess,
   onCancel,
 }: Props) {
   const [form] = Form.useForm();
 
-  const [currentStep, setCurrentStep] = useState(1);
-  const [hasVariant, setHasVariant] = useState(false);
+  // =========================
+  // STATES
+  // =========================
+
+  const [currentStep, setCurrentStep] =
+    useState(1);
+
+  const [submitting, setSubmitting] =
+    useState(false);
+
+  const [hasVariant, setHasVariant] =
+    useState(false);
+
+  const [skinTypes, setSkinTypes] =
+    useState<SkinTypeType[]>([]);
+
   const [variants, setVariants] =
     useState<VariantType[]>([
-        {
-        weight: '',
-        importPrice: 0,
-        price: 0,
-        stock: 0,
-        },
+      createDefaultVariant(),
     ]);
 
-    type VariantType = {
-        weight: string;
-        importPrice: number | null;
-        price: number | null;
-        stock: number | null;
-        };
+  const isDetailMode = mode === 'detail';
 
-        const handleVariantChange = <
-        K extends keyof VariantType,
-        >(
-        index: number,
-        field: K,
-        value: VariantType[K],
-        ) => {
-            setVariants((prev) =>
-                prev.map((item, i) =>
-                i === index
-                    ? {
-                        ...item,
-                        [field]: value,
-                    }
-                    : item,
-                ),
-            );
-    };
-
-
-    const handleAddVariant = () => {
-        setVariants([
-            ...variants,
-            {
-            weight: '',
-            importPrice: 0,
-            price: 0,
-            stock: 0,
-            },
-        ]);
-    };
+  // =========================
+  // WATCH FORM VALUES
+  // =========================
 
   const importPrice =
     Form.useWatch(
-        'importPrice',
-        form,
+      'importPrice',
+      form,
     ) || 0;
 
-    const salePrice =
+  const salePrice =
     Form.useWatch(
-        'price',
-        form,
+      'price',
+      form,
     ) || 0;
 
-    const profit = salePrice - importPrice;
+  // =========================
+  // COMPUTED VALUES
+  // =========================
 
-  const handleSubmit = async (
-    values: any,
+  const profit = useMemo(() => {
+    return salePrice - importPrice;
+  }, [salePrice, importPrice]);
+
+  // =========================
+  // EFFECTS
+  // =========================
+
+  useEffect(() => {
+    fetchSkinTypes();
+  }, []);
+
+  useEffect(() => {
+    if (!initialValues) return;
+
+    form.setFieldsValue({
+      ...initialValues,
+
+      weight:
+        initialValues.weight || 0,
+
+      importPrice:
+        initialValues.importPrice ||
+        initialValues.variants?.[0]
+          ?.importPrice ||
+        0,
+
+      images:
+        initialValues.images?.map(
+          (image, index) => ({
+            uid: String(index),
+            name: `image-${index}`,
+            status: 'done',
+            url: image,
+          }),
+        ) || [],
+    });
+
+    if (
+      initialValues.variants?.length
+    ) {
+      setHasVariant(true);
+
+      setVariants(
+        initialValues.variants,
+      );
+    }
+  }, [initialValues]);
+
+  // =========================
+  // API
+  // =========================
+
+  const fetchSkinTypes =
+    async () => {
+      try {
+        const res =
+          await getSkinTypes();
+
+        setSkinTypes(
+          res.data || [],
+        );
+      } catch (error) {
+        message.error(
+          'Không thể tải loại da',
+        );
+      }
+    };
+
+  // =========================
+  // HELPERS
+  // =========================
+
+  const calculateProfit = (
+    price?: number | null,
+    importPrice?: number | null,
   ) => {
-    console.log(values);
-
-    setTimeout(() => {
-      onSuccess?.();
-    }, 500);
+    return (
+      Number(price || 0) -
+      Number(importPrice || 0)
+    );
   };
+
+  const buildProductPayload = (
+    formValues: any,
+  ): ProductType => {
+    const firstVariant = variants[0];
+
+    const previewImages =
+      (formValues.images || []).map(
+        (file: any) =>
+          file.thumbUrl ||
+          file.url,
+      );
+
+    return {
+      id:
+        mode === 'edit'
+          ? initialValues?.id || 0
+          : Date.now(),
+
+      name: formValues.name || '',
+
+      category:
+        formValues.category || '',
+
+      skinType:
+        formValues.skinType || '',
+
+      description:
+        formValues.description || '',
+
+      detail:
+        formValues.detail || '',
+
+      weight: Number(
+        formValues.weight || 0,
+      ),
+
+      importPrice: Number(
+        formValues.importPrice || 0,
+      ),
+
+      price: Number(
+        formValues.price || 0,
+      ),
+
+      stock: Number(
+        formValues.stock || 0,
+      ),
+
+      warningStock: Number(
+        formValues.warningStock || 0,
+      ),
+
+      images: previewImages,
+
+      active:
+        initialValues?.active ?? true,
+
+      variants: hasVariant
+        ? variants
+        : [],
+    };
+  };
+  // =========================
+  // VARIANT HANDLERS
+  // =========================
+
+  const handleVariantChange = <
+    K extends keyof VariantType,
+  >(
+    index: number,
+    field: K,
+    value: VariantType[K],
+  ) => {
+    setVariants((prev) =>
+      prev.map((item, i) =>
+        i === index
+          ? {
+              ...item,
+              [field]: value,
+            }
+          : item,
+      ),
+    );
+  };
+
+  const handleAddVariant =
+    () => {
+      setVariants((prev) => [
+        ...prev,
+        createDefaultVariant(),
+      ]);
+    };
+
+  // =========================
+  // STEP HANDLERS
+  // =========================
+
+  const handleNextStep =
+    async () => {
+
+      // DETAIL MODE
+      // không validate
+      if (isDetailMode) {
+        setCurrentStep(2);
+
+        return;
+      }
+
+      try {
+        await form.validateFields(
+          PRODUCT_REQUIRED_FIELDS,
+        );
+
+        setCurrentStep(2);
+      } catch (error) {}
+    };
+
+  // =========================
+  // SUBMIT
+  // =========================
+
+  const handleSubmit =
+    async () => {
+      try {
+        setSubmitting(true);
+
+        const formValues =
+          form.getFieldsValue(
+            true,
+          );
+
+        const newProduct =
+          buildProductPayload(
+            formValues,
+          );
+
+        if (mode === 'edit') {
+          const {
+            updateProduct,
+          } = await import(
+            '@/services/SanPham/products.api'
+          );
+
+          await updateProduct(
+            initialValues?.id || 0,
+            newProduct,
+          );
+        } else {
+          await createProduct(
+            newProduct,
+          );
+        }
+
+        onSuccess?.(
+          newProduct,
+        );
+      } catch (error) {
+        message.error(
+          'Không thể tạo sản phẩm',
+        );
+      } finally {
+        setSubmitting(false);
+      }
+    };
+
+  // =========================
+  // RENDER SECTION
+  // =========================
+
+  const renderBasicInfoSection =
+    () => {
+      return (
+        <div className="product-section">
+          <div className="section-left">
+            <h3>
+              Thông tin cơ bản
+            </h3>
+
+            <p>
+              Thêm mô tả cho sản
+              phẩm.
+            </p>
+          </div>
+
+          <div className="section-right">
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  label="Tên sản phẩm"
+                  name="name"
+                  rules={[
+                    {
+                      required: true,
+                      message:
+                        'Vui lòng nhập tên sản phẩm',
+                    },
+                  ]}
+                >
+                  <Input disabled={isDetailMode}/>
+                </Form.Item>
+              </Col>
+
+              <Col span={12}>
+                <Form.Item
+                  label="Loại da"
+                  name="skinType"
+                >
+                  <Select
+                    disabled={isDetailMode}
+                    placeholder="Chọn loại da"
+                    options={skinTypes.map(
+                      (
+                        item,
+                      ) => ({
+                        label:
+                          item.name,
+                        value:
+                          item.name,
+                      }),
+                    )}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Form.Item
+              label="Loại sản phẩm"
+              name="category"
+            >
+              <Select disabled={isDetailMode}/>
+            </Form.Item>
+          </div>
+        </div>
+      );
+    };
+
+  const renderInventorySection =
+    () => {
+      return (
+        <div className="product-section">
+          <div className="section-left">
+            <h3>
+              Kho hàng sản phẩm
+            </h3>
+
+            <p>
+              Quản lý số lượng
+              tồn kho.
+            </p>
+          </div>
+
+          <div className="section-right">
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  label="Số lượng"
+                  name="stock"
+                  rules={[
+                    {
+                      required: true,
+                      message:
+                        'Vui lòng nhập số lượng',
+                    },
+                  ]}
+                >
+                  <InputNumber
+                    disabled={isDetailMode}
+                    addonAfter="Pcs"
+                    style={{
+                      width:
+                        '100%',
+                    }}
+                  />
+                </Form.Item>
+              </Col>
+
+              <Col span={12}>
+                <Form.Item
+                  label="Ngưỡng cảnh báo"
+                  name="warningStock"
+                  rules={[
+                    {
+                      required: true,
+                      message:
+                        'Vui lòng nhập ngưỡng cảnh báo',
+                    },
+                  ]}
+                >
+                  <InputNumber
+                    disabled={isDetailMode}
+                    addonAfter="Pcs"
+                    style={{
+                      width:
+                        '100%',
+                    }}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+          </div>
+        </div>
+      );
+    };
+
+  const renderWeightSection =
+  () => {
+    return (
+      <div className="product-section">
+        <div className="section-left">
+          <h3>
+            Trọng lượng sản phẩm
+          </h3>
+
+          <p>
+            Dùng cho sản phẩm mặc định.
+          </p>
+        </div>
+
+        <div className="section-right">
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Trọng lượng"
+                name="weight"
+                rules={[
+                  {
+                    required: true,
+                    message:
+                      'Vui lòng nhập trọng lượng',
+                  },
+                ]}
+              >
+                <InputNumber
+                  disabled={isDetailMode}
+                  addonAfter="Gram"
+                  style={{
+                    width: '100%',
+                  }}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+        </div>
+      </div>
+    );
+  };
+
+  const renderPriceSection =
+    () => {
+      return (
+        <div className="product-section">
+          <div className="section-left">
+            <h3>
+              Giá sản phẩm
+            </h3>
+
+            <p>
+              Quản lý giá bán và
+              lợi nhuận.
+            </p>
+          </div>
+
+          <div className="section-right">
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  label="Giá nhập"
+                  name="importPrice"
+                  rules={[
+                    {
+                      required: true,
+                      message:
+                        'Vui lòng nhập giá nhập',
+                    },
+                  ]}
+                >
+                  <InputNumber
+                    disabled={isDetailMode}
+                    addonAfter="đ"
+                    style={{
+                      width:
+                        '100%',
+                    }}
+                  />
+                </Form.Item>
+              </Col>
+
+              <Col span={12}>
+                <Form.Item
+                  label="Giá bán"
+                  name="price"
+                  rules={[
+                    {
+                      required: true,
+                      message:
+                        'Vui lòng nhập giá bán',
+                    },
+                  ]}
+                >
+                  <InputNumber
+                    disabled={isDetailMode}
+                    addonAfter="đ"
+                    style={{
+                      width:
+                        '100%',
+                    }}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item label="Lợi nhuận">
+                  <InputNumber
+                    value={profit}
+                    disabled
+                    addonAfter="đ"
+                    style={{
+                      width:
+                        '100%',
+                    }}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+          </div>
+        </div>
+      );
+    };
+
+  const renderDescriptionSection =
+    () => {
+      return (
+        <>
+          <div className="product-section">
+            <div className="section-left">
+              <h3>Mô tả</h3>
+
+              <p>
+                Mô tả ngắn về sản
+                phẩm.
+              </p>
+            </div>
+
+            <div className="section-right">
+              <Form.Item
+                name="description"
+                rules={[
+                  {
+                    required: true,
+                    message:
+                      'Vui lòng nhập mô tả',
+                  },
+                ]}
+              >
+                <Input.TextArea
+                  disabled={isDetailMode}
+                  rows={8}
+                />
+              </Form.Item>
+            </div>
+          </div>
+
+          <div className="product-section">
+            <div className="section-left">
+              <h3>
+                Chi tiết sản phẩm
+              </h3>
+
+              <p>
+                Thông tin sử dụng,
+                thành phần...
+              </p>
+            </div>
+
+            <div className="section-right">
+              <Form.Item
+                name="detail"
+                rules={[
+                  {
+                    required: true,
+                    message:
+                      'Vui lòng nhập chi tiết',
+                  },
+                ]}
+              >
+                <Input.TextArea
+                  disabled={isDetailMode}
+                  rows={8}
+                />
+              </Form.Item>
+            </div>
+          </div>
+        </>
+      );
+    };
+
+
+  // =========================
+  // RENDER
+  // =========================
 
   return (
     <div className="product-form">
-      {/* HEADER */}
-
       <div className="product-header">
-        <h1>Thêm sản phẩm</h1>
+        <h1>
+          {mode === 'create' &&
+            'Thêm sản phẩm'}
+
+          {mode === 'edit' &&
+            'Chỉnh sửa sản phẩm'}
+
+          {mode === 'detail' &&
+            'Chi tiết sản phẩm'}
+        </h1>
 
         <p>
-            Vui lòng hoàn thành biểu mẫu sau đây để thêm sản phẩm
+          Vui lòng hoàn thành
+          biểu mẫu sản phẩm
         </p>
-        </div>
+      </div>
 
       <Form
         layout="vertical"
         form={form}
+        preserve
         onFinish={handleSubmit}
-        >
+      >
         {/* STEP */}
 
         <div className="product-step-wrapper">
-            <div
-                className={`step-box ${
-                currentStep >= 1
-                    ? 'active'
-                    : ''
-                }`}
-            >
-                <span>
-                {currentStep > 1
-                    ? '✓'
-                    : '1'}
-                </span>
+          <div
+            className={`step-box ${
+              currentStep >= 1
+                ? 'active'
+                : ''
+            }`}
+          >
+            <span>
+              {currentStep > 1
+                ? '✓'
+                : '1'}
+            </span>
 
-                <p>Thông tin chung</p>
-            </div>
+            <p>
+              Thông tin chung
+            </p>
+          </div>
 
-            <div className="step-divider" />
+          <div className="step-divider" />
 
-            <div
-                className={`step-box ${
-                currentStep === 2
-                    ? 'active'
-                    : ''
-                }`}
-            >
-                <span>2</span>
+          <div
+            className={`step-box ${
+              currentStep === 2
+                ? 'active'
+                : ''
+            }`}
+          >
+            <span>2</span>
 
-                <p>Biến thể sản phẩm</p>
-            </div>
+            <p>
+              Biến thể sản phẩm
+            </p>
+          </div>
         </div>
 
-           
-        {currentStep === 1 && (  
-            <>
-             {/* SECTION */}
-            <div className="product-section">
-                {/* LEFT */}
+        {/* STEP 1 */}
 
-                <div className="section-left">
-                <h3>Thông tin cơ bản</h3>
+        {currentStep === 1 && (
+          <>
+            {renderBasicInfoSection()}
+
+            {renderInventorySection()}
+
+            {renderWeightSection()}
+
+            {renderPriceSection()}
+
+            {renderDescriptionSection()}
+
+            <div className="product-section">
+              <div className="section-left">
+                <h3>
+                  Hình ảnh sản phẩm
+                </h3>
 
                 <p>
-                    Thêm mô tả cho sản phẩm.
+                  Tải ảnh sản phẩm.
                 </p>
-                </div>
+              </div>
 
-                {/* RIGHT */}
-
-                <div className="section-right">
-                <Row gutter={16}>
-                    <Col span={12}>
-                        <Form.Item
-                            label="Tên sản phẩm"
-                            name="name"
-                            rules={[
-                                {
-                                required: true,
-                                message:
-                                    'Vui lòng nhập tên sản phẩm',
-                                },
-                            ]}
-                        >
-                            <Input />
-                        </Form.Item>
-                    </Col>
-                </Row>
-
+              <div className="section-right">
                 <Form.Item
-                    label="Loại sản phẩm"
-                    name="category"
+                  name="images"
+                  valuePropName="value"
+                  rules={[
+                    {
+                      required: true,
+                      message:
+                        'Vui lòng tải ảnh',
+                    },
+                  ]}
                 >
-                    <Select />
+                  <ProductImageUpload />
                 </Form.Item>
-                </div>
+              </div>
             </div>
 
-            {/* KHO */}
-
-            <div className="product-section">
-                <div className="section-left">
-                <h3>Kho hàng sản phẩm</h3>
-
-                <p>
-                    Nhập số lượng tồn kho hiện tại và mức tồn kho tối thiểu để nhận cảnh báo khi hàng sắp hết
-                </p>
-                </div>
-
-                <div className="section-right">
-                <Row gutter={16}>
-                    <Col span={12}>
-                    <Form.Item
-                        label="Số lượng đang có sẵn"
-                        name="stock"
-                        rules={[
-                            {
-                            required: true,
-                            message:
-                                'Vui lòng nhập số lượng',
-                            },
-                        ]}
-                    >
-                        <InputNumber
-                        addonAfter="Pcs"
-                        style={{ width: '100%' }}
-                        />
-                    </Form.Item>
-                    </Col>
-
-                    <Col span={12}>
-                    <Form.Item
-                        label="Ngưỡng báo động"
-                        name="warningStock"
-                        rules={[
-                            {
-                            required: true,
-                            message:
-                                'Vui lòng nhập ngưỡng báo động',
-                            },
-                        ]}
-                    >
-                        <InputNumber
-                        addonAfter="Pcs"
-                        style={{ width: '100%' }}
-                        />
-                    </Form.Item>
-                    </Col>
-                </Row>
-                </div>
-            </div>
-
-            {/* TRỌNG LƯỢNG */}
-
-            <div className="product-section">
-            <div className="section-left">
-                <h3>Trọng lượng sản phẩm</h3>
-
-                <p>
-                Để tính chính xác chi phí vận chuyển. 
-                </p>
-            </div>
-
-            <div className="section-right">
-                <Row gutter={16}>
-                <Col span={12}>
-                    <Form.Item
-                    label="Trọng lượng sản phẩm"
-                    name="weight"
-                    >
-                    <InputNumber
-                        addonAfter="Gram"
-                        style={{ width: '100%' }}
-                    />
-                    </Form.Item>
-                </Col>
-                </Row>
-            </div>
-            </div>
-
-            {/* GIÁ */}
-
-            <div className="product-section">
-                <div className="section-left">
-                <h3>Giá sản phẩm</h3>
-
-                <p>
-                    Việc nhập giá chính xác là cơ sở để quản lý doanh thu và áp dụng các chương trình chiết khấu sau này.
-                </p>
-                </div>
-
-                <div className="section-right">
-                <Row gutter={16}>
-                    <Col span={12}>
-                    <Form.Item
-                        label="Giá nhập"
-                        name="importPrice"
-                        rules={[
-                            {
-                            required: true,
-                            message:
-                                'Vui lòng nhập giá nhập',
-                            },
-                        ]}
-                    >
-                        <InputNumber
-                        addonAfter="đ"
-                        style={{ width: '100%' }}
-                        />
-                    </Form.Item>
-                    </Col>
-
-                    <Col span={12}>
-                    <Form.Item
-                        label="Giá bán"
-                        name="price"
-                        rules={[
-                            {
-                            required: true,
-                            message:
-                                'Vui lòng nhập giá bán',
-                            },
-                        ]}
-                    >
-                        <InputNumber
-                        addonAfter="đ"
-                        style={{ width: '100%' }}
-                        />
-                    </Form.Item>
-                    </Col>
-                </Row>
-
-                <Row gutter={16}>
-                    <Col span={12}>
-                    <Form.Item label="Lợi nhuận">
-                        <InputNumber
-                        value={profit}
-                        addonAfter="đ"
-                        disabled
-                        style={{ width: '100%' }}
-                        />
-                    </Form.Item>
-                    </Col>
-                </Row>
-                </div>
-            </div>
-
-            {/* MÔ TẢ */}
-
-            <div className="product-section">
-                <div className="section-left">
-                <h3>Mô tả</h3>
-
-                <p>
-                    Viết một đoạn ngắn gọn về đặc điểm nổi bật và công dụng chính của sản phẩm để thu hút sự chú ý của khách hàng.
-                </p>
-                </div>
-
-                <div className="section-right">
-                <Form.Item name="description">
-                    <Input.TextArea rows={8} />
-                </Form.Item>
-                </div>
-            </div>
-
-            {/* CHI TIẾT */}
-
-            <div className="product-section">
-                <div className="section-left">
-                <h3>Thông tin chi tiết</h3>
-
-                <p>
-                    Đây là phần quan trọng giúp khách hàng yên tâm về độ an toàn và hiểu rõ quy trình sử dụng sản phẩm để đạt hiệu quả tốt nhất.
-                </p>
-                </div>
-
-                <div className="section-right">
-                <Form.Item name="detail">
-                    <Input.TextArea rows={8} />
-                </Form.Item>
-                </div>
-            </div>
-
-            {/* IMAGE */}
-
-            <div className="product-section">
-                <div className="section-left">
-                <h3>Hình ảnh sản phẩm</h3>
-
-                <p>
-                    Tải lên hình ảnh rõ nét của sản phẩm. Nên có ít nhất một ảnh chụp chính diện bao bì và một ảnh chụp thực tế chất kem/tinh chất bên trong
-                </p>
-                </div>
-
-                <div className="section-right">
-                <Upload
-                    listType="picture-card"
-                    beforeUpload={() => false}
-                >
-                    <div>
-                    <PlusOutlined />
-
-                    <div>Upload</div>
-                    </div>
-                </Upload>
-                </div>
-            </div>
-
-            {/* FOOTER */}
-            
             <div className="product-footer">
-                <Button onClick={onCancel}>
-                    Trở lại
-                </Button>
+              <Button
+                onClick={
+                  onCancel
+                }
+              >
+                Trở lại
+              </Button>
 
-                <Button
-                    type="primary"
-                    onClick={async () => {
-                        try {
-                        await form.validateFields([
-                            'name',
-                            'stock',
-                            'warningStock',
-                            'importPrice',
-                            'price',
-                        ]);
-
-                        setCurrentStep(2);
-                        } catch (error) {}
-                    }}
-                    >
-                    Tiếp theo
-                </Button>
+              <Button
+                type="primary"
+                onClick={
+                  handleNextStep
+                }
+              >
+                Tiếp theo
+              </Button>
             </div>
-            </>  
-            )}
+          </>
+        )}
 
-            {currentStep === 2 && (
-                <div className="variant-wrapper">
-                    {/* SWITCH */}
+        {/* STEP 2 */}
 
-                    <div className="variant-toggle-box">
-                    <div>
-                        <h3>
-                        Biến thể sản phẩm ?
-                        </h3>
+        {currentStep === 2 && (
+          <>
+            <VariantEditor
+              hasVariant={hasVariant}
+              variants={variants}
+              onToggleVariant={setHasVariant}
+              onAddVariant={handleAddVariant}
+              onVariantChange={handleVariantChange}
+            />
 
-                        <p>
-                        Mục này dùng nếu sản phẩm
-                        của bạn có nhiều loại khác
-                        nhau (Ví dụ: Chai 30ml và
-                        Chai 50ml).
-                        </p>
-                    </div>
+            <div className="product-footer">
+              <Button
+                onClick={() =>
+                  setCurrentStep(1)
+                }
+              >
+                Trở lại
+              </Button>
 
-                    <Switch
-                        checked={hasVariant}
-                        onChange={setHasVariant}
-                    />
-                    </div>
+              {!isDetailMode && (
+                <Button
+                  type="primary"
+                  loading={
+                    submitting
+                  }
+                  onClick={() =>
+                    form.submit()
+                  }
+                >
+                  Lưu
+                </Button>
+              )}
 
-                    {/* TABLE */}
-
-                    {hasVariant && (
-                    <>
-                        <table className="variant-table">
-                        <thead>
-                            <tr>
-                            <th>STT</th>
-                            <th>Khối lượng</th>
-                            <th>Giá nhập</th>
-                            <th>Giá bán</th>
-                            <th>Lợi nhuận</th>
-                            <th>Tồn kho</th>
-                            </tr>
-                        </thead>
-
-                       <tbody>
-                            {variants.map(
-                                (item, index) => {
-                                const profit =
-                                    Number(item.price || 0) -
-                                    Number(
-                                    item.importPrice || 0,
-                                    );
-
-                                return (
-                                    <tr key={index}>
-                                    <td>{index + 1}</td>
-
-                                    {/* KHỐI LƯỢNG */}
-
-                                    <td>
-                                        <Input
-                                        value={item.weight}
-                                        placeholder="300g"
-                                        onChange={(e) =>
-                                            handleVariantChange(
-                                            index,
-                                            'weight',
-                                            e.target.value,
-                                            )
-                                        }
-                                        />
-                                    </td>
-
-                                    {/* GIÁ NHẬP */}
-
-                                    <td>
-                                        <InputNumber
-                                        value={item.importPrice}
-                                        style={{ width: '100%' }}
-                                        onChange={(value) =>
-                                            handleVariantChange(
-                                            index,
-                                            'importPrice',
-                                            value,
-                                            )
-                                        }
-                                        />
-                                    </td>
-
-                                    {/* GIÁ BÁN */}
-
-                                    <td>
-                                        <InputNumber
-                                        value={item.price}
-                                        style={{ width: '100%' }}
-                                        onChange={(value) =>
-                                            handleVariantChange(
-                                            index,
-                                            'price',
-                                            value,
-                                            )
-                                        }
-                                        />
-                                    </td>
-
-                                    {/* LỢI NHUẬN */}
-
-                                    <td>
-                                        {profit.toLocaleString()} đ
-                                    </td>
-
-                                    {/* TỒN KHO */}
-
-                                    <td>
-                                        <InputNumber
-                                        value={item.stock}
-                                        style={{ width: '100%' }}
-                                        onChange={(value) =>
-                                            handleVariantChange(
-                                            index,
-                                            'stock',
-                                            value,
-                                            )
-                                        }
-                                        />
-                                    </td>
-                                    </tr>
-                                );
-                                },
-                            )}
-                            </tbody>
-                        </table>
-
-                        <Button className="add-variant-btn"
-                            onClick={handleAddVariant}
-                        >
-                        + Thêm mới
-                        </Button>
-                    </>
-                    )}
-
-                    {/* FOOTER */}
-
-                    <div className="product-footer">
-                    <Button
-                        onClick={() =>
-                        setCurrentStep(1)
-                        }
-                    >
-                        Hủy
-                    </Button>
-
-                    <Button
-                        type="primary"
-                        onClick={() => {
-                        form.submit();
-                        }}
-                    >
-                        Lưu
-                    </Button>
-                    </div>
-                </div>
-                )}
-
-        </Form>
+            </div>
+          </>
+        )}
+      </Form>
     </div>
   );
 }

@@ -267,3 +267,111 @@
     overflow-y: auto;
   }
 }
+
+/* PAGINATION */
+.admin-products-table {
+  .ant-table-pagination {
+    display: flex;
+    align-items: center;
+  }
+
+  .ant-pagination {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ant-pagination-total-text {
+    display: flex;
+    align-items: center;
+
+    margin: 0 !important;
+    padding: 0;
+
+    height: 32px;
+    line-height: 32px;
+
+    font-size: 16px;
+  }
+}
+
+.custom-pagination {
+  margin-top: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 14px;
+
+  .pagination-total {
+    font-size: 16px;
+    color: #333;
+
+    display: flex;
+    align-items: center;
+
+    height: 36px;
+  }
+
+  .ant-pagination {
+    display: flex;
+    align-items: center;
+    margin: 0;
+  }
+
+  .ant-pagination-prev,
+  .ant-pagination-next,
+  .ant-pagination-item {
+    min-width: 36px;
+    height: 36px;
+
+    border-radius: 8px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin: 0 4px;
+  }
+
+  .ant-pagination-item a {
+    line-height: 36px;
+  }
+
+  .ant-pagination-item-active {
+    border-color: #f29b7f;
+    background: #fff7f3;
+
+    a {
+      color: #f29b7f;
+      font-weight: 600;
+    }
+  }
+
+  .ant-pagination-options {
+    margin-left: 12px;
+
+    display: flex;
+    align-items: center;
+  }
+
+  .ant-select {
+    height: 36px;
+  }
+
+  .ant-select-selector {
+    height: 36px !important;
+
+    border-radius: 10px !important;
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 14px !important;
+  }
+
+  .ant-select-selection-item {
+    line-height: 34px !important;
+  }
+}
