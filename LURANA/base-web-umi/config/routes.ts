@@ -1,4 +1,4 @@
-﻿export default [
+export default [
   {
     path: '/auth',
     layout: false,
@@ -53,8 +53,18 @@
     ],
   },
 
-  // ... routes khác shop/admin của bạn
-
-  { path: '/', redirect: '/auth/login' },
+  {
+    path: '/',
+    component: '@/layouts/ShopLayout',
+    layout: false,
+    routes: [
+      { path: '/home', component: '@/pages/shop/Home' },
+      { path: '/about', component: '@/pages/shop/About' },
+      { path: '/products', component: '@/pages/shop/Products' },
+      { path: '/blog/:id', component: '@/pages/shop/BlogDetail' },
+      { path: '/blog', component: '@/pages/shop/Blog' },
+      { path: '/', redirect: '/home' },
+    ],
+  },
   // { component: './404' },
 ];

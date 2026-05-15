@@ -35,8 +35,15 @@ export function onRouteChange({ location }: any) {
   const token = localStorage.getItem('token');
 
   const isAuthPage = location.pathname.startsWith('/auth');
+  const isPublicShopPage =
+    location.pathname === '/' ||
+    location.pathname.startsWith('/home') ||
+    location.pathname.startsWith('/about') ||
+    location.pathname.startsWith('/products') ||
+    location.pathname.startsWith('/blog') ||
+    location.pathname.startsWith('/contact');
 
-  if (!token && !isAuthPage) {
+  if (!token && !isAuthPage && !isPublicShopPage) {
     history.push('/auth/login');
   }
 }
