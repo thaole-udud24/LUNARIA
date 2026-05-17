@@ -1,32 +1,24 @@
-@primary-color: #ffb8b8;
-@primary-dark: #ff9999;
-@secondary-color: #fff5f5;
-@text-color: #333;
-@light-gray: #f9f9f9;
+@primary-color: #e8a0a0;
+@primary-dark: #d4787a;
+@primary-rose: #c0606b;
+@secondary-color: rgba(255, 245, 245, 0.85);
+@text-color: #4a2c2a;
+@text-light: #7a5c5a;
+@light-gray: #f9f0f0;
+@glass-white: rgba(255, 255, 255, 0.72);
+@glass-border: rgba(255, 255, 255, 0.6);
 
 .home-container {
   padding: 0;
   
   .hero-section {
     position: relative;
-    padding: 80px 10%;
+    padding: 90px 10%;
     display: flex;
     align-items: center;
-    background: #fff;
-    min-height: 80vh;
+    background: transparent;
+    min-height: 82vh;
     overflow: hidden;
-
-    &::before {
-      content: '';
-      position: absolute;
-      top: -100px;
-      right: -100px;
-      width: 500px;
-      height: 500px;
-      background: @secondary-color;
-      border-radius: 50%;
-      z-index: 0;
-    }
 
     .hero-content {
       position: relative;
@@ -35,40 +27,51 @@
 
       .hero-badge {
         font-family: 'Brush Script MT', cursive;
-        font-size: 3rem;
-        color: @primary-color;
-        margin-bottom: -10px;
+        font-size: 3.2rem;
+        color: @primary-rose;
+        margin-bottom: -8px;
+        text-shadow: 0 2px 8px rgba(192, 96, 107, 0.2);
       }
 
       h1 {
-        font-size: 3.5rem;
-        color: #2c2f42;
+        font-size: 3.8rem;
+        color: @primary-rose;
         margin-bottom: 20px;
         font-weight: 800;
         text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: 0 2px 12px rgba(192, 96, 107, 0.15);
       }
 
       p {
         font-size: 1rem;
-        color: #666;
+        color: @text-light;
         margin-bottom: 40px;
-        max-width: 500px;
-        line-height: 1.6;
+        max-width: 480px;
+        line-height: 1.8;
+        background: @glass-white;
+        padding: 16px 20px;
+        border-radius: 12px;
+        backdrop-filter: blur(8px);
+        border: 1px solid @glass-border;
       }
 
       .shop-now-btn {
-        background-color: @primary-color;
+        background: linear-gradient(135deg, #e8a0a0 0%, #c0606b 100%);
         border: none;
-        height: 50px;
-        padding: 0 40px;
+        height: 52px;
+        padding: 0 44px;
         font-size: 1rem;
         font-weight: 600;
-        border-radius: 25px;
+        border-radius: 26px;
         color: #fff;
-        box-shadow: 0 4px 15px rgba(255, 184, 184, 0.4);
+        box-shadow: 0 6px 20px rgba(192, 96, 107, 0.35);
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
         &:hover {
-          background-color: @primary-dark;
-          transform: translateY(-2px);
+          background: linear-gradient(135deg, #d4787a 0%, #a04050 100%);
+          transform: translateY(-3px);
+          box-shadow: 0 10px 28px rgba(192, 96, 107, 0.45);
         }
       }
     }
@@ -81,11 +84,21 @@
       justify-content: center;
 
       .img-circle {
-        width: 450px;
-        height: 450px;
+        width: 420px;
+        height: 420px;
         border-radius: 50%;
-        border: 8px solid @primary-color;
+        border: 6px solid rgba(255, 255, 255, 0.85);
         overflow: hidden;
+        box-shadow:
+          0 0 0 12px rgba(232, 160, 160, 0.25),
+          0 20px 60px rgba(192, 96, 107, 0.25);
+        transition: transform 0.4s ease, box-shadow 0.4s ease;
+        &:hover {
+          transform: scale(1.02);
+          box-shadow:
+            0 0 0 16px rgba(232, 160, 160, 0.2),
+            0 28px 70px rgba(192, 96, 107, 0.3);
+        }
         img {
           width: 100%;
           height: 100%;
@@ -99,47 +112,57 @@
     display: flex;
     padding: 80px 10%;
     align-items: center;
-    background: #fff;
+    background: transparent;
 
     .about-img {
       flex: 1;
       img {
         width: 100%;
         max-width: 500px;
-        border-radius: 10px;
+        border-radius: 16px;
+        box-shadow: 0 16px 48px rgba(192, 96, 107, 0.18);
       }
     }
 
     .about-text {
       flex: 1;
-      background: @secondary-color;
+      background: @glass-white;
+      backdrop-filter: blur(12px);
+      border: 1px solid @glass-border;
       padding: 60px 40px;
       border-radius: 20px;
-      margin-left: -50px; /* Overlap effect */
+      margin-left: -50px;
       position: relative;
       z-index: 2;
+      box-shadow: 0 8px 32px rgba(192, 96, 107, 0.12);
 
       h2 {
         font-size: 2rem;
-        color: @primary-color;
+        color: @primary-rose;
         margin-bottom: 20px;
         font-weight: 700;
       }
 
       p {
-        color: @primary-color;
+        color: @text-light;
         line-height: 1.8;
         margin-bottom: 30px;
-        font-weight: 500;
+        font-weight: 400;
       }
 
       .read-more-btn {
-        background: @primary-color;
+        background: linear-gradient(135deg, #e8a0a0 0%, #c0606b 100%);
         color: #fff;
         border: none;
         border-radius: 20px;
-        height: 40px;
-        padding: 0 30px;
+        height: 42px;
+        padding: 0 32px;
+        box-shadow: 0 4px 14px rgba(192, 96, 107, 0.3);
+        transition: all 0.3s ease;
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(192, 96, 107, 0.4);
+        }
       }
     }
   }
@@ -161,13 +184,19 @@
     padding: 60px 10%;
     
     .essence-card {
-      background: @secondary-color;
+      background: @glass-white;
+      backdrop-filter: blur(10px);
+      border: 1px solid @glass-border;
       padding: 40px 20px;
-      border-radius: 15px;
+      border-radius: 18px;
       text-align: center;
-      transition: transform 0.3s;
+      transition: all 0.35s ease;
+      box-shadow: 0 4px 16px rgba(192, 96, 107, 0.08);
       
-      &:hover { transform: translateY(-5px); }
+      &:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 32px rgba(192, 96, 107, 0.18);
+      }
 
       .icon-wrapper {
         font-size: 3.5rem;
@@ -184,27 +213,34 @@
   }
 
   .best-seller-section {
-    background: @secondary-color;
+    background: @glass-white;
+    backdrop-filter: blur(12px);
+    border: 1px solid @glass-border;
     padding: 80px 10%;
     border-radius: 30px;
     margin: 40px 5%;
+    box-shadow: 0 8px 40px rgba(192, 96, 107, 0.1);
 
     .view-more {
       text-align: right;
       margin-bottom: 20px;
-      a { color: @text-color; font-weight: 500; }
+      a { color: @primary-rose; font-weight: 500; text-decoration: none;
+        &:hover { text-decoration: underline; }
+      }
     }
 
     .product-card {
-      background: #fff;
-      border-radius: 15px;
+      background: rgba(255,255,255,0.9);
+      border-radius: 18px;
       padding: 20px;
       position: relative;
       text-align: center;
-      transition: all 0.3s;
+      transition: all 0.35s ease;
+      border: 1px solid rgba(232, 160, 160, 0.15);
 
       &:hover {
-        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        transform: translateY(-5px);
+        box-shadow: 0 14px 32px rgba(192, 96, 107, 0.14);
       }
 
       .wishlist-icon {
@@ -243,8 +279,9 @@
       }
 
       .product-price {
-        color: #888;
+        color: @primary-rose;
         font-size: 0.9rem;
+        font-weight: 600;
       }
     }
   }
@@ -264,21 +301,29 @@
         gap: 20px;
 
         .commit-box {
-          background: @secondary-color;
+          background: @glass-white;
+          backdrop-filter: blur(10px);
+          border: 1px solid @glass-border;
           padding: 20px;
-          border-radius: 10px;
+          border-radius: 14px;
           display: flex;
           align-items: center;
           gap: 15px;
+          box-shadow: 0 4px 14px rgba(192, 96, 107, 0.08);
+          transition: all 0.3s ease;
+          &:hover {
+            box-shadow: 0 8px 24px rgba(192, 96, 107, 0.16);
+            transform: translateY(-2px);
+          }
           
           .commit-icon {
-            color: @primary-color;
+            color: @primary-rose;
             font-size: 1.5rem;
           }
           
           .commit-text {
             h5 { margin: 0 0 5px 0; font-size: 1rem; color: @text-color; }
-            p { margin: 0; font-size: 0.8rem; color: #666; }
+            p { margin: 0; font-size: 0.8rem; color: @text-light; }
           }
         }
       }
@@ -288,6 +333,7 @@
         img {
           width: 100%;
           border-radius: 20px;
+          box-shadow: 0 16px 48px rgba(192, 96, 107, 0.18);
         }
       }
     }
@@ -303,8 +349,8 @@
 
       .stats-text {
         flex: 1;
-        h3 { font-size: 2rem; color: @text-color; margin-bottom: 20px; text-transform: uppercase; }
-        p { color: #666; line-height: 1.6; }
+        h3 { font-size: 2rem; color: @text-color; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        p { color: @text-light; line-height: 1.6; }
       }
 
       .stats-grid {
@@ -314,8 +360,8 @@
         gap: 40px;
 
         .stat-item {
-          h4 { font-size: 2.5rem; color: @text-color; margin-bottom: 5px; }
-          p { color: #666; font-size: 0.9rem; }
+          h4 { font-size: 2.5rem; color: @primary-rose; margin-bottom: 5px; font-weight: 800; }
+          p { color: @text-light; font-size: 0.9rem; }
         }
       }
     }
@@ -330,7 +376,8 @@
       content: '';
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(255, 230, 230, 0.85); /* Pinkish overlay */
+      background: linear-gradient(135deg, rgba(255,230,230,0.82) 0%, rgba(255,210,210,0.75) 100%);
+      backdrop-filter: blur(4px);
     }
 
     .quote-content {
@@ -341,15 +388,17 @@
 
       p {
         font-size: 1.5rem;
-        color: @primary-color;
+        color: @primary-rose;
         font-weight: 600;
-        line-height: 1.6;
+        line-height: 1.7;
         margin-bottom: 30px;
+        font-style: italic;
       }
       .author {
-        font-size: 1.2rem;
-        color: @primary-color;
+        font-size: 1.1rem;
+        color: @primary-rose;
         font-weight: 700;
+        letter-spacing: 1px;
       }
     }
   }

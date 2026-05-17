@@ -18,7 +18,13 @@ const Home: React.FC = () => {
   return (
     <div 
       className="home-container" 
-      style={bgImg ? { background: `url(${bgImg}) top center / 100% auto no-repeat` } : {}}
+      style={bgImg ? { 
+        backgroundImage: `url(${bgImg})`,
+        backgroundRepeat: 'repeat',
+        backgroundSize: '1440px auto',
+        backgroundPosition: 'top center',
+        backgroundAttachment: 'fixed'
+      } : {}}
     >
       <HeroSection />
       <AboutSection />
