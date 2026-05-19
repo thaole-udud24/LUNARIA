@@ -12,6 +12,7 @@ import {
   SearchOutlined
 } from '@ant-design/icons';
 import { Link, useLocation, history } from 'umi';
+import { message } from 'antd';
 import './ShopLayout.less';
 
 const getImg = (name: string) => {
@@ -56,6 +57,53 @@ const HeaderSearch: React.FC = () => {
 
 const ShopLayout: React.FC = ({ children }) => {
   const location = useLocation();
+  const [forceHide, setForceHide] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [unreadCount, setUnreadCount] = useState(2);
+
+  React.useEffect(() => {
+    try {
+      const u = localStorage.getItem('user');
+      if (u) {
+        setCurrentUser(JSON.parse(u));
+      } else {
+        setCurrentUser(null);
+      }
+      const notifs = localStorage.getItem('lunaria_notifications');
+      if (notifs) {
+        const parsed = JSON.parse(notifs);
+        const count = parsed.filter((n: any) => !n.isRead).length;
+        setUnreadCount(count);
+      }
+    } catch (e) {
+      setCurrentUser(null);
+    }
+  }, [location.pathname]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    localStorage.removeItem('user');
+    setCurrentUser(null);
+    message.success('Đã đăng xuất thành công');
+    history.push('/home');
+  };
+
+  const handleQuickSearch = (keyword: string) => {
+    setForceHide(true);
+    history.push(`/products?q=${encodeURIComponent(keyword)}`);
+    setTimeout(() => {
+      setForceHide(false);
+    }, 500);
+  };
+
+  const handleQuickTab = (tab: string) => {
+    setForceHide(true);
+    history.push(`/products?tab=${encodeURIComponent(tab)}`);
+    setTimeout(() => {
+      setForceHide(false);
+    }, 500);
+  };
 
   return (
     <div className="shop-layout">
@@ -68,60 +116,134 @@ const ShopLayout: React.FC = ({ children }) => {
             <div className="nav-item-wrapper mega-menu-wrapper">
               <Link to="/products" className={`nav-shop-link ${location.pathname === '/products' ? 'active' : ''}`}>Shop</Link>
               
-              <div className="mega-menu-dropdown">
+              <div className={`mega-menu-dropdown ${forceHide ? 'force-hide' : ''}`}>
                 <div className="mega-menu-container">
                   <div className="mega-left-content">
-                    <p className="mega-heading">Danh mục sản phẩm</p>
-                    <div className="mega-cat-list">
-                      <Link to="/products?tab=Làm sạch da" className="mega-cat-item">
-                        <span className="mega-cat-icon">🧼</span>
-                        <div className="mega-cat-info">
-                          <strong>Làm sạch da</strong>
-                          <span>Tẩy trang, sữa rửa mặt, toner</span>
+                    
+                    {/* Top Row: 4 Columns */}
+                    <div className="mega-grid-row">
+                      {/* Column 1 */}
+                      <div className="mega-col">
+                        <a onClick={() => handleQuickTab('Làm sạch da')} className="mega-col-heading" style={{ cursor: 'pointer' }}>
+                          LÀM SẠCH DA <span className="heading-arrow">›</span>
+                        </a>
+                        <div className="mega-sub-list">
+                          <a onClick={() => handleQuickSearch('Tẩy trang')}>Tẩy trang</a>
+                          <a onClick={() => handleQuickSearch('Sữa rửa mặt')}>Sữa rửa mặt</a>
+                          <a onClick={() => handleQuickSearch('Toner làm sạch')}>Toner làm sạch</a>
+                          <a onClick={() => handleQuickSearch('Tẩy tế bào chết')}>Tẩy tế bào chết</a>
                         </div>
-                        <span className="mega-cat-arrow">›</span>
-                      </Link>
-                      <Link to="/products?tab=Cân bằng da" className="mega-cat-item">
-                        <span className="mega-cat-icon">💧</span>
-                        <div className="mega-cat-info">
-                          <strong>Cân bằng da</strong>
-                          <span>Toner, xịt khoáng, serum cân bằng</span>
+                      </div>
+
+                      {/* Column 2 */}
+                      <div className="mega-col">
+                        <a onClick={() => handleQuickTab('Cân bằng da')} className="mega-col-heading" style={{ cursor: 'pointer' }}>
+                          CÂN BẰNG DA <span className="heading-arrow">›</span>
+                        </a>
+                        <div className="mega-sub-list">
+                          <a onClick={() => handleQuickSearch('Toner dưỡng ẩm')}>Toner dưỡng ẩm</a>
+                          <a onClick={() => handleQuickSearch('Xịt khoáng')}>Xịt khoáng</a>
+                          <a onClick={() => handleQuickSearch('Serum cân bằng')}>Serum cân bằng</a>
+                          <a onClick={() => handleQuickSearch('Nước thần')}>Nước thần</a>
                         </div>
-                        <span className="mega-cat-arrow">›</span>
-                      </Link>
-                      <Link to="/products?tab=Dưỡng ẩm" className="mega-cat-item">
-                        <span className="mega-cat-icon">✨</span>
-                        <div className="mega-cat-info">
-                          <strong>Dưỡng ẩm</strong>
-                          <span>Serum, kem dưỡng, dưỡng mắt, dưỡng môi</span>
+                      </div>
+
+                      {/* Column 3 */}
+                      <div className="mega-col">
+                        <a onClick={() => handleQuickTab('Dưỡng ẩm')} className="mega-col-heading" style={{ cursor: 'pointer' }}>
+                          DƯỠNG ẨM <span className="heading-arrow">›</span>
+                        </a>
+                        <div className="mega-sub-list">
+                          <a onClick={() => handleQuickSearch('Serum cấp nước')}>Serum cấp nước</a>
+                          <a onClick={() => handleQuickSearch('Kem dưỡng ẩm')}>Kem dưỡng ẩm</a>
+                          <a onClick={() => handleQuickSearch('Kem dưỡng mắt')}>Kem dưỡng mắt</a>
+                          <a onClick={() => handleQuickSearch('Mặt nạ ngủ')}>Mặt nạ ngủ</a>
+                          <a onClick={() => handleQuickSearch('Dưỡng môi')}>Dưỡng môi</a>
                         </div>
-                        <span className="mega-cat-arrow">›</span>
-                      </Link>
-                      <Link to="/products?tab=Chống nắng" className="mega-cat-item">
-                        <span className="mega-cat-icon">☀️</span>
-                        <div className="mega-cat-info">
-                          <strong>Chống nắng</strong>
-                          <span>Kem chống nắng SPF 30, 50, dạng xịt</span>
+                      </div>
+
+                      {/* Column 4 */}
+                      <div className="mega-col">
+                        <a onClick={() => handleQuickTab('Chống nắng')} className="mega-col-heading" style={{ cursor: 'pointer' }}>
+                          CHỐNG NẮNG <span className="heading-arrow">›</span>
+                        </a>
+                        <div className="mega-sub-list">
+                          <a onClick={() => handleQuickSearch('Kem chống nắng SPF 30')}>Kem chống nắng SPF 30</a>
+                          <a onClick={() => handleQuickSearch('Kem chống nắng SPF 50')}>Kem chống nắng SPF 50</a>
+                          <a onClick={() => handleQuickSearch('Chống nắng dạng xịt')}>Chống nắng dạng xịt</a>
+                          <a onClick={() => handleQuickSearch('Chống nắng vật lý')}>Chống nắng vật lý</a>
                         </div>
-                        <span className="mega-cat-arrow">›</span>
-                      </Link>
-                      <Link to="/products?tab=Phục hồi" className="mega-cat-item">
-                        <span className="mega-cat-icon">🌿</span>
-                        <div className="mega-cat-info">
-                          <strong>Phục hồi</strong>
-                          <span>Mặt nạ, serum phục hồi, kem dưỡng đêm</span>
-                        </div>
-                        <span className="mega-cat-arrow">›</span>
-                      </Link>
+                      </div>
                     </div>
+
+                    {/* Bottom Row: 3 Columns */}
+                    <div className="mega-grid-row bottom-row">
+                      {/* Column 1 */}
+                      <div className="mega-col">
+                        <a onClick={() => handleQuickTab('Phục hồi')} className="mega-col-heading" style={{ cursor: 'pointer' }}>
+                          PHỤC HỒI DA <span className="heading-arrow">›</span>
+                        </a>
+                        <div className="mega-sub-list">
+                          <a onClick={() => handleQuickSearch('Mặt nạ phục hồi')}>Mặt nạ phục hồi</a>
+                          <a onClick={() => handleQuickSearch('Serum B5')}>Serum B5</a>
+                          <a onClick={() => handleQuickSearch('Kem dưỡng ban đêm')}>Kem dưỡng ban đêm</a>
+                          <a onClick={() => handleQuickSearch('Phục hồi chuyên sâu')}>Phục hồi chuyên sâu</a>
+                        </div>
+                      </div>
+
+                      {/* Column 2 */}
+                      <div className="mega-col">
+                        <a onClick={() => handleQuickTab('Tất cả')} className="mega-col-heading" style={{ cursor: 'pointer' }}>
+                          BỘ SẢN PHẨM <span className="heading-arrow">›</span>
+                        </a>
+                        <div className="mega-sub-list">
+                          <a onClick={() => handleQuickSearch('Bộ làm sạch sâu')}>Bộ làm sạch sâu</a>
+                          <a onClick={() => handleQuickSearch('Bộ dưỡng ẩm trắng da')}>Bộ dưỡng ẩm trắng da</a>
+                          <a onClick={() => handleQuickSearch('Bộ phục hồi hư tổn')}>Bộ phục hồi hư tổn</a>
+                          <a onClick={() => handleQuickSearch('Bộ chống lão hóa')}>Bộ chống lão hóa</a>
+                        </div>
+                      </div>
+
+                      {/* Column 3 */}
+                      <div className="mega-col">
+                        <a onClick={() => handleQuickTab('Tất cả')} className="mega-col-heading" style={{ cursor: 'pointer' }}>
+                          QUÀ TẶNG <span className="heading-arrow">›</span>
+                        </a>
+                        <div className="mega-sub-list">
+                          <a onClick={() => handleQuickSearch('Set quà tặng dưới 500K')}>Set quà tặng dưới 500K</a>
+                          <a onClick={() => handleQuickSearch('Set quà tặng dưới 1000K')}>Set quà tặng dưới 1000K</a>
+                          <a onClick={() => handleQuickSearch('Set quà tặng cao cấp')}>Set quà tặng cao cấp</a>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="mega-bottom-link">
-                      <Link to="/products">TẤT CẢ SẢN PHẨM</Link>
+                      <a onClick={() => handleQuickTab('Tất cả')} style={{ cursor: 'pointer' }}>TẤT CẢ SẢN PHẨM</a>
                     </div>
                   </div>
 
                   <div className="mega-right-images">
-                    <img src={getImg('mega-menu-1.png')} alt="Mega Promo 1" className="mega-img mega-img-top" />
-                    <img src={getImg('mega-menu-2.png')} alt="Mega Promo 2" className="mega-img mega-img-bottom" />
+                    <div className="mega-promo-card" onClick={() => handleQuickTab('Quà tặng')}>
+                      <img src={getImg('product-2.jpg') || 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=500&q=80'} alt="Mega Promo 1" />
+                      <div className="promo-overlay">
+                        <div className="promo-content">
+                          <span className="promo-tag">HOT DEAL</span>
+                          <h4>Set Quà Tặng Mùa Hè</h4>
+                          <p>Tiết kiệm lên đến 30%</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="mega-promo-card" onClick={() => handleQuickTab('Chống nắng')}>
+                      <img src={getImg('product-4.jpg') || 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=500&q=80'} alt="Mega Promo 2" />
+                      <div className="promo-overlay">
+                        <div className="promo-content">
+                          <span className="promo-tag">NEW</span>
+                          <h4>Kem Chống Nắng SPF 50</h4>
+                          <p>Bảo vệ da toàn diện</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -143,11 +265,61 @@ const ShopLayout: React.FC = ({ children }) => {
           </div>
 
           <div className="header-right header-actions">
-            <BellOutlined className="action-icon" />
-            <ShoppingCartOutlined className="action-icon" />
-            <Link to="/auth/login">
-              <UserOutlined className="action-icon" style={{ color: 'inherit' }} />
+            <Link to="/notifications" className="notification-bell-link" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <BellOutlined className="action-icon" style={{ color: 'inherit' }} />
+              {unreadCount > 0 && <span className="header-unread-badge">{unreadCount}</span>}
             </Link>
+            <Link to="/cart">
+              <ShoppingCartOutlined className="action-icon" style={{ color: 'inherit' }} />
+            </Link>
+            <div className="user-menu-wrapper">
+              <Link to={currentUser ? "/account" : "/auth/login"}>
+                <UserOutlined className="action-icon" style={{ color: 'inherit' }} />
+              </Link>
+
+              <div className="user-menu-dropdown">
+                {currentUser ? (
+                  <div className="user-dropdown-content logged-in">
+                    <div className="user-header">
+                      <span className="avatar">👤</span>
+                      <div className="user-info">
+                        <strong>{currentUser.email.split('@')[0]}</strong>
+                        <span>Thành viên Lunaria</span>
+                      </div>
+                    </div>
+                    <div className="user-menu-list">
+                      <Link to="/account" className="user-menu-item">
+                        <span className="icon">📄</span> Thông tin tài khoản
+                      </Link>
+                      <Link to="/orders" className="user-menu-item">
+                        <span className="icon">📦</span> Đơn mua của tôi
+                      </Link>
+                      <Link to="/notifications" className="user-menu-item">
+                        <span className="icon">🔔</span> Thông báo của tôi {unreadCount > 0 && `(${unreadCount})`}
+                      </Link>
+                      <a onClick={handleLogout} className="user-menu-item logout">
+                        <span className="icon">🚪</span> Đăng xuất
+                      </a>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="user-dropdown-content guest">
+                    <div className="guest-header">
+                      <h4>Tài khoản Lunaria</h4>
+                      <p>Đăng nhập để theo dõi đơn hàng và nhận ưu đãi</p>
+                    </div>
+                    <div className="guest-actions">
+                      <Link to="/auth/login" className="btn-login">
+                        Đăng nhập
+                      </Link>
+                      <Link to="/auth/register" className="btn-register">
+                        Đăng ký
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </header>

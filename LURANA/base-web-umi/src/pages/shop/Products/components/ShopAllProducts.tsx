@@ -1,6 +1,7 @@
 import React from 'react';
 import { Row, Col, Checkbox, Pagination, Select } from 'antd';
 import { HeartFilled, StarFilled } from '@ant-design/icons';
+import { history } from 'umi';
 import { getImg } from '../utils';
 
 const ShopAllProducts: React.FC = () => {
@@ -71,7 +72,11 @@ const ShopAllProducts: React.FC = () => {
           <Row gutter={[24, 32]}>
             {mockProducts.map((p) => (
               <Col xs={24} sm={12} md={8} lg={6} key={p.id}>
-                <div className={`shop2-product-card ${p.active ? 'active-card' : ''}`}>
+                <div 
+                  className={`shop2-product-card ${p.active ? 'active-card' : ''}`}
+                  onClick={() => history.push(`/products/${p.id}`)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <div className="card-top">
                     <div className="heart-icon"><HeartFilled /></div>
                     <div className="rating-badge"><StarFilled /> {p.rating}</div>

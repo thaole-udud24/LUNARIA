@@ -56,7 +56,7 @@ export default function RegisterPage() {
               Mỗi buổi sáng là một khởi đầu mới, khi làn da cần được đánh thức
               bằng sự dịu dàng.
             </p>
-            <button>Mua ngay</button>
+            <button onClick={() => history.push('/products')}>Mua ngay</button>
           </div>
         </div>
 
@@ -66,7 +66,7 @@ export default function RegisterPage() {
 
             <button
               className="auth-back"
-              onClick={() => history.push('/auth/login')}
+              onClick={() => history.push('/home')}
             >
               ← Trở lại
             </button>
@@ -76,7 +76,7 @@ export default function RegisterPage() {
               Tạo tài khoản mua sắm của bạn
             </p>
 
-            <button className="auth-google">
+            <button className="auth-google" onClick={() => message.info('Tính năng đăng ký bằng Google đang được bảo trì...')}>
               🔵 Sign up with Google
             </button>
 
@@ -102,6 +102,7 @@ export default function RegisterPage() {
               placeholder="Mật khẩu"
               value={form.password}
               onChange={handleChange}
+              onKeyDown={(e) => e.key === 'Enter' && handleRegister()}
             />
 
             <button

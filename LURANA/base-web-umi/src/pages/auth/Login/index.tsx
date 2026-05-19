@@ -80,7 +80,7 @@ export default function LoginPage() {
             Mỗi buổi sáng là một khởi đầu mới, khi làn da cần được đánh thức
             bằng sự dịu dàng.
           </p>
-          <button>Mua ngay</button>
+          <button onClick={() => history.push('/products')}>Mua ngay</button>
         </div>
       </div>
 
@@ -88,7 +88,7 @@ export default function LoginPage() {
       <div className="auth-right">
         <div className="auth-form">
           <div className="auth-top">
-            <button className="auth-back">← Trở lại</button>
+            <button className="auth-back" onClick={() => history.push('/home')}>← Trở lại</button>
           </div>
 
           <h2>Chào mừng trở lại</h2>
@@ -96,7 +96,7 @@ export default function LoginPage() {
             Nhập thông tin để truy cập tài khoản của bạn
           </p>
 
-          <button className="auth-google">
+          <button className="auth-google" onClick={() => message.info('Tính năng đăng nhập bằng Google đang được bảo trì...')}>
             🔵 Sign up with Google
           </button>
 
@@ -112,6 +112,7 @@ export default function LoginPage() {
             placeholder="Mật khẩu"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
           />
 
           <div className="auth-forgot" onClick={() => history.push('/auth/forgot-password')}>Quên mật khẩu?</div>

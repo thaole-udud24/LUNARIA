@@ -181,6 +181,57 @@
       padding: 10px;
     }
 
+    /* Grid view — shown when "Xem tất cả" is clicked */
+    .product-grid-view {
+      .product-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 32px;
+
+        @media (max-width: 1024px) { grid-template-columns: repeat(3, 1fr); }
+        @media (max-width: 768px)  { grid-template-columns: repeat(2, 1fr); }
+        @media (max-width: 480px)  { grid-template-columns: 1fr; }
+
+        .grid-card-wrapper {
+          .shop2-product-card {
+            margin: 0;
+          }
+        }
+      }
+
+      .grid-pagination {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 16px;
+        padding-top: 20px;
+        border-top: 1px solid #ffe0e0;
+
+        .pagination-total {
+          color: #999;
+          font-size: 13px;
+        }
+
+        .ant-pagination-item-active {
+          border-color: @primary-color;
+          background-color: @primary-color;
+          a { color: #fff; }
+        }
+
+        .ant-pagination-item:hover {
+          border-color: @primary-color;
+          a { color: @primary-color; }
+        }
+
+        .ant-pagination-prev:hover .ant-pagination-item-link,
+        .ant-pagination-next:hover .ant-pagination-item-link {
+          color: @primary-color;
+          border-color: @primary-color;
+        }
+      }
+    }
+
     .shop2-product-card {
       background: @secondary-color; /* Pale pink background */
       border-radius: 16px;
@@ -257,7 +308,8 @@
 
   /* 5. Gallery */
   .shop-gallery-section {
-    background: @light-bg;
+    background: rgba(250, 250, 250, 0.75);
+    backdrop-filter: blur(12px);
     padding: 60px 0;
     margin-bottom: 60px;
     overflow: hidden;
